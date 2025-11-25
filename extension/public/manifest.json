@@ -1,0 +1,28 @@
+{
+    "manifest_version": 3,
+    "name": "OLI - Overlay Legal Intelligence",
+    "version": "1.0",
+    "description": "Assistant décisionnel pour la conformité réglementaire",
+    "permissions": [
+        "sidePanel",
+        "activeTab",
+        "scripting"
+    ],
+    "host_permissions": [
+        "<all_urls>"
+    ],
+    "side_panel": {
+        "default_path": "index.html"
+    },
+    "action": {
+        "default_title": "Ouvrir OLI"
+    },
+    "icons": {
+        "16": "icon16.png",
+        "48": "icon48.png",
+        "128": "icon128.png"
+    },
+    "background": {
+        "service_worker": "service-worker.js"
+    }
+}

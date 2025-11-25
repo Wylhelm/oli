@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Portail Immigration Canada - Système Hérité</title>
+    <style>
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            background-color: #e8e8e8;
+            margin: 0;
+            padding: 20px;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d0d0d0' fill-opacity='0.3'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+        .container {
+            width: 850px;
+            margin: 0 auto;
+            background-color: #fff;
+            border: 2px solid #666;
+            padding: 0;
+            box-shadow: 4px 4px 8px rgba(0,0,0,0.2);
+        }
+        .gov-header {
+            background: linear-gradient(180deg, #8B0000 0%, #6B0000 100%);
+            color: white;
+            padding: 15px 20px;
+            border-bottom: 3px solid #FEC30D;
+        }
+        .gov-header h1 {
+            font-size: 18px;
+            margin: 0 0 5px 0;
+            font-family: Arial, sans-serif;
+        }
+        .gov-header .canada-flag {
+            float: right;
+            font-size: 24px;
+        }
+        .gov-header p {
+            font-size: 12px;
+            margin: 0;
+            opacity: 0.9;
+        }
+        .toolbar {
+            background-color: #f0f0f0;
+            border-bottom: 1px solid #999;
+            padding: 8px 15px;
+            font-family: Arial, sans-serif;
+            font-size: 11px;
+            color: #333;
+        }
+        .toolbar span {
+            margin-right: 20px;
+        }
+        .content {
+            padding: 20px;
+        }
+        .case-header {
+            background-color: #003366;
+            color: white;
+            padding: 10px 15px;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+        .case-header .case-id {
+            float: right;
+            font-weight: normal;
+            opacity: 0.8;
+        }
+        .section {
+            margin-bottom: 15px;
+            border: 1px solid #999;
+            background-color: #fafafa;
+        }
+        .section-title {
+            font-weight: bold;
+            background: linear-gradient(180deg, #e8e8e8 0%, #d0d0d0 100%);
+            padding: 8px 12px;
+            border-bottom: 1px solid #999;
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            color: #333;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .section-content {
+            padding: 12px;
+        }
+        .field {
+            margin-bottom: 8px;
+            display: flex;
+            align-items: baseline;
+        }
+        .label {
+            font-weight: bold;
+            width: 220px;
+            font-size: 13px;
+            color: #444;
+            flex-shrink: 0;
+        }
+        .value {
+            color: #000;
+            font-size: 13px;
+            flex: 1;
+        }
+        .value.highlight-info {
+            background-color: #ffffcc;
+            padding: 2px 6px;
+            display: inline-block;
+        }
+        .value.amount {
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-family: Arial, sans-serif;
+            text-transform: uppercase;
+        }
+        .status-pending {
+            background-color: #FFF3CD;
+            color: #856404;
+            border: 1px solid #FFEEBA;
+        }
+        .status-verified {
+            background-color: #D4EDDA;
+            color: #155724;
+            border: 1px solid #C3E6CB;
+        }
+        .status-warning {
+            background-color: #F8D7DA;
+            color: #721C24;
+            border: 1px solid #F5C6CB;
+        }
+        .divider {
+            border-top: 1px dashed #ccc;
+            margin: 10px 0;
+        }
+        table.data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        table.data-table th {
+            background-color: #e0e0e0;
+            border: 1px solid #999;
+            padding: 6px 10px;
+            text-align: left;
+            font-family: Arial, sans-serif;
+        }
+        table.data-table td {
+            border: 1px solid #ccc;
+            padding: 6px 10px;
+        }
+        table.data-table tr:nth-child(even) {
+            background-color: #f5f5f5;
+        }
+        .footer {
+            margin-top: 20px;
+            font-size: 10px;
+            text-align: center;
+            color: #666;
+            border-top: 2px solid #003366;
+            padding: 15px;
+            background-color: #f8f8f8;
+        }
+        .footer .confidential {
+            color: #8B0000;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .action-buttons {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            text-align: right;
+        }
+        .btn {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            padding: 8px 20px;
+            margin-left: 10px;
+            cursor: pointer;
+            border: 1px solid #666;
+        }
+        .btn-primary {
+            background: linear-gradient(180deg, #4a90d9 0%, #357abd 100%);
+            color: white;
+            border-color: #2e6da4;
+        }
+        .btn-secondary {
+            background: linear-gradient(180deg, #f0f0f0 0%, #e0e0e0 100%);
+            color: #333;
+        }
+        .notes-box {
+            background-color: #fffef0;
+            border: 1px solid #e0d090;
+            padding: 10px;
+            font-size: 12px;
+            font-style: italic;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Government Header -->
+        <div class="gov-header">
+            <span class="canada-flag">🍁</span>
+            <h1>Gouvernement du Canada / Government of Canada</h1>
+            <p>Immigration, Réfugiés et Citoyenneté Canada (IRCC) — Système de Traitement des Demandes v4.2.1</p>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <span>📁 Fichier</span>
+            <span>✏️ Modifier</span>
+            <span>🔍 Rechercher</span>
+            <span>📋 Rapports</span>
+            <span>❓ Aide</span>
+            <span style="float: right; color: #666;">Agent: J.TREMBLAY | Session: 2024-01-15 14:32</span>
+        </div>
+
+        <div class="content">
+            <!-- Case Header -->
+            <div class="case-header">
+                <span class="case-id">Dossier #: IMM-2024-00547821</span>
+                <strong>📋 FICHE DE DEMANDE - ENTRÉE EXPRESS</strong>
+            </div>
+
+            <!-- Applicant Information -->
+            <div class="section">
+                <div class="section-title">👤 Information du Demandeur Principal</div>
+                <div class="section-content">
+                    <div class="field">
+                        <span class="label">Nom complet :</span>
+                        <span class="value"><strong>Sophie Martin</strong></span>
+                    </div>
+                    <div class="field">
+                        <span class="label">ID Unique Client (UCI) :</span>
+                        <span class="value">UCI-99887766</span>
+                    </div>
+                    <div class="field">
+                        <span class="label">Date de naissance :</span>
+                        <span class="value">1985-04-12</span>
+                    </div>
+                    <div class="field">
+                        <span class="label">Sexe :</span>
+                        <span class="value">Féminin</span>
+                    </div>
+                    <div class="field">
+                        <span class="label">Pays de citoyenneté :</span>
+                        <span class="value">France 🇫🇷</span>
+                    </div>
+                    <div class="field">
+                        <span class="label">Pays de résidence :</span>
+                        <span class="value">France</span>
+                    </div>
+                    <div class="field">
+                        <span class="label">Numéro de passeport :</span>
+                        <span class="value">FR1234567</span>
+                    </div>
+                    <div class="field">
+                        <span class="label">État civil :</span>
+                        <span class="value">Célibataire</span>
+                    </div>
+                    <div class="field">
+                        <span class="label">Personnes à charge :</span>
+                        <span class="value">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Financial Details -->
+            <div class="section">
+                <div class="section-title">💰 Détails Financiers - Preuve de Fonds</div>
+                <div class="section-content">
+                    <div class="field">
+                        <span class="label">Type de preuve :</span>
+                        <span class="value">Relevé Bancaire (Certifié)</span>
+                    </div>
+                    <div class="field">
+                        <span class="label">Institution financière :</span>
+                        <span class="value">Banque Nationale de Paris (BNP)</span>
+                    </div>
+                    <div class="field">
+                        <span class="label">Numéro de compte :</span>
+                        <span class="value">****4521</span>
+                    </div>
+                    <div class="divider"></div>
+                    <div class="field">
+                        <span class="label">Solde moyen (6 mois) :</span>
+                        <span class="value amount highlight-info">5 000 $</span>
+                    </div>
+                    <div class="field">
+                        <span class="label">Devise :</span>
+                        <span class="value">CAD (converti de EUR)</span>
+                    </div>
+                    <div class="field">
+                        <span class="label">Taux de conversion utilisé :</span>
+                        <span class="value">1 EUR = 1.47 CAD (2024-01-10)</span>
+                    </div>
+                    <div class="field">
+                        <span class="label">Date du relevé :</span>
+                        <span class="value">2024-01-01</span>
+                    </div>
+                    
+                    <div class="notes-box">
+                        <strong>📌 Note:</strong> Le seuil LICO requis pour une personne seule est de <strong>20 635 $ CAD</strong>. 
+                        Vérifier la conformité selon le Règlement R179(b).
+                    </div>
+                </div>
+            </div>
+
+            <!-- Application Status -->
+            <div class="section">
+                <div class="section-title">📊 Statut de la Demande</div>
+                <div class="section-content">
+                    <div class="field">
+                        <span class="label">Date de soumission :</span>
+                        <span class="value">2024-01-01</span>
+                    </div>
+                    <div class="field">
+                        <span class="label">Catégorie d'immigration :</span>
+                        <span class="value">Entrée Express - Travailleur Qualifié Fédéral</span>
+                    </div>
+                    <div class="field">
+                        <span class="label">Score CRS :</span>
+                        <span class="value"><strong>468</strong> points</span>
+                    </div>
+                    <div class="field">
+                        <span class="label">État actuel :</span>
+                        <span class="value">
+                            <span class="status-badge status-pending">⏳ En attente d'évaluation</span>
+                        </span>
+                    </div>
+                    <div class="field">
+                        <span class="label">Vérification biométrique :</span>
+                        <span class="value">
+                            <span class="status-badge status-verified">✓ Complétée</span>
+                        </span>
+                    </div>
+                    <div class="field">
+                        <span class="label">Vérification médicale :</span>
+                        <span class="value">
+                            <span class="status-badge status-verified">✓ Approuvée</span>
+                        </span>
+                    </div>
+                    <div class="field">
+                        <span class="label">Vérification de sécurité :</span>
+                        <span class="value">
+                            <span class="status-badge status-pending">⏳ En cours</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Document Checklist -->
+            <div class="section">
+                <div class="section-title">📄 Liste des Documents Soumis</div>
+                <div class="section-content">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Document</th>
+                                <th>Date de soumission</th>
+                                <th>Statut</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Passeport (copie certifiée)</td>
+                                <td>2024-01-01</td>
+                                <td><span class="status-badge status-verified">✓ Vérifié</span></td>
+                            </tr>
+                            <tr>
+                                <td>Relevé bancaire (6 mois)</td>
+                                <td>2024-01-01</td>
+                                <td><span class="status-badge status-warning">⚠ À vérifier</span></td>
+                            </tr>
+                            <tr>
+                                <td>Diplôme universitaire</td>
+                                <td>2024-01-02</td>
+                                <td><span class="status-badge status-verified">✓ Vérifié</span></td>
+                            </tr>
+                            <tr>
+                                <td>Évaluation des diplômes (ECA)</td>
+                                <td>2024-01-02</td>
+                                <td><span class="status-badge status-verified">✓ Vérifié</span></td>
+                            </tr>
+                            <tr>
+                                <td>Test de langue (IELTS)</td>
+                                <td>2023-12-15</td>
+                                <td><span class="status-badge status-verified">✓ Vérifié</span></td>
+                            </tr>
+                            <tr>
+                                <td>Certificat de police</td>
+                                <td>2024-01-03</td>
+                                <td><span class="status-badge status-pending">⏳ En attente</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <button class="btn btn-secondary">📋 Imprimer le dossier</button>
+                <button class="btn btn-secondary">📤 Exporter PDF</button>
+                <button class="btn btn-primary">✅ Soumettre décision</button>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="confidential">🔒 PROTÉGÉ B — RENSEIGNEMENTS PERSONNELS</div>
+            © Sa Majesté le Roi du chef du Canada, représentée par le ministre de la Citoyenneté et de l'Immigration, 1998-2024.<br>
+            Système GCMS Legacy v4.2.1 | Dernière mise à jour: 2024-01-15 14:35:22 EST
+        </div>
+    </div>
+</body>
+</html>
