@@ -2,13 +2,74 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional, List
+from contextlib import asynccontextmanager
 import re
 from enum import Enum
 
+# RAG imports
+from rag.vector_store import LegalVectorStore
+from rag.retriever import ContextualRetriever
+
+# LLM imports
+from llm.ollama_client import OllamaClient
+from llm.compliance_chain import ComplianceChain
+
+# Global instances (initialized on startup)
+vector_store: Optional[LegalVectorStore] = None
+retriever: Optional[ContextualRetriever] = None
+llm_client: Optional[OllamaClient] = None
+compliance_chain: Optional[ComplianceChain] = None
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Initialize RAG and LLM systems on startup"""
+    global vector_store, retriever, llm_client, compliance_chain
+    
+    # Initialize RAG
+    print("[OLI] Initializing RAG System...")
+    try:
+        vector_store = LegalVectorStore()
+        retriever = ContextualRetriever(vector_store)
+        stats = vector_store.get_stats()
+        total_docs = sum(s["count"] for s in stats.values())
+        print(f"[OLI] RAG System ready: {total_docs} documents indexed")
+    except Exception as e:
+        print(f"[OLI] RAG System initialization failed: {e}")
+    
+    # Initialize LLM
+    import os
+    ollama_model = os.environ.get("OLLAMA_MODEL", "gpt-oss:120b-cloud")
+    print(f"[OLI] Initializing LLM (Ollama: {ollama_model})...")
+    try:
+        llm_client = OllamaClient(model=ollama_model)
+        if llm_client.is_available():
+            print(f"[OLI] LLM model found: {llm_client.model}")
+            # Create compliance chain (using chat API for cloud models)
+            if retriever:
+                compliance_chain = ComplianceChain(retriever=retriever, llm_client=llm_client)
+                print("[OLI] Compliance Chain ready (RAG + LLM)")
+        else:
+            available = llm_client.list_models()
+            print(f"[OLI] LLM model not found. Available: {available}")
+            print("[OLI] Falling back to rule-based analysis")
+    except Exception as e:
+        print(f"[OLI] LLM init error: {e}")
+        print("[OLI] Falling back to rule-based analysis")
+    
+    yield
+    
+    # Cleanup
+    if llm_client:
+        llm_client.close()
+    print("[OLI] Shutting down...")
+
+
 app = FastAPI(
     title="OLI Backend API",
-    description="Overlay Legal Intelligence - Compliance Analysis Engine",
-    version="1.0.0"
+    description="Overlay Legal Intelligence - Compliance Analysis Engine with RAG",
+    version="2.0.0",
+    lifespan=lifespan
 )
 
 # CORS for extension
@@ -437,7 +498,19 @@ async def analyze(request: AnalysisRequest):
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
-    return {"status": "healthy", "service": "OLI Backend"}
+    rag_status = "ready" if vector_store else "unavailable"
+    rag_docs = 0
+    if vector_store:
+        stats = vector_store.get_stats()
+        rag_docs = sum(s["count"] for s in stats.values())
+    
+    return {
+        "status": "healthy", 
+        "service": "OLI Backend",
+        "version": "2.0.0",
+        "rag_status": rag_status,
+        "rag_documents": rag_docs
+    }
 
 
 @app.get("/rules")
@@ -451,6 +524,293 @@ async def list_rules():
             {"id": "PROOF_FUNDS", "name": "Proof of Funds", "description": LEGAL_KNOWLEDGE["PROOF_OF_FUNDS"]["description"]}
         ]
     }
+
+
+# ============================================================================
+# RAG Endpoints
+# ============================================================================
+
+class RAGSearchRequest(BaseModel):
+    query: str
+    n_results: int = 5
+    min_score: float = 0.3
+
+
+class RAGSearchResult(BaseModel):
+    id: str
+    text: str
+    score: float
+    doc_title: str
+    doc_type: str
+    section: str
+    url: str
+
+
+class RAGSearchResponse(BaseModel):
+    query: str
+    results: List[RAGSearchResult]
+    context: str
+    sources: List[dict]
+
+
+@app.post("/rag/search", response_model=RAGSearchResponse)
+async def rag_search(request: RAGSearchRequest):
+    """
+    Search the legal knowledge base using RAG
+    
+    Returns relevant legal context from Canadian immigration laws
+    """
+    if not retriever:
+        raise HTTPException(
+            status_code=503, 
+            detail="RAG system not available. Please ensure vector database is initialized."
+        )
+    
+    result = retriever.retrieve(
+        query=request.query,
+        n_results=request.n_results,
+        min_score=request.min_score
+    )
+    
+    formatted_results = []
+    for doc in result.documents:
+        metadata = doc.get("metadata", {})
+        formatted_results.append(RAGSearchResult(
+            id=doc.get("id", ""),
+            text=doc.get("text", "")[:500],  # Limit text length in response
+            score=doc.get("score", 0),
+            doc_title=metadata.get("doc_title", ""),
+            doc_type=metadata.get("doc_type", ""),
+            section=metadata.get("section", ""),
+            url=metadata.get("html_url", "")
+        ))
+    
+    return RAGSearchResponse(
+        query=request.query,
+        results=formatted_results,
+        context=result.context[:2000],  # Limit context length
+        sources=result.sources
+    )
+
+
+class RAGContextRequest(BaseModel):
+    check_type: str  # LICO, DOCUMENT_VALIDITY, IDENTITY, PROOF_OF_FUNDS
+    document_text: Optional[str] = None
+
+
+@app.post("/rag/context")
+async def get_rag_context(request: RAGContextRequest):
+    """
+    Get relevant legal context for a specific compliance check type
+    """
+    if not retriever:
+        raise HTTPException(
+            status_code=503, 
+            detail="RAG system not available"
+        )
+    
+    valid_types = ["LICO", "DOCUMENT_VALIDITY", "IDENTITY", "PROOF_OF_FUNDS"]
+    if request.check_type not in valid_types:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid check_type. Must be one of: {valid_types}"
+        )
+    
+    result = retriever.retrieve_for_check(
+        check_type=request.check_type,
+        document_text=request.document_text or "",
+        n_results=5
+    )
+    
+    return {
+        "check_type": request.check_type,
+        "documents_found": len(result.documents),
+        "context": result.context,
+        "sources": result.sources,
+        "relevance_score": result.total_score
+    }
+
+
+@app.get("/rag/stats")
+async def get_rag_stats():
+    """Get statistics about the RAG vector store"""
+    if not vector_store:
+        raise HTTPException(
+            status_code=503,
+            detail="RAG system not available"
+        )
+    
+    stats = vector_store.get_stats()
+    total = sum(s["count"] for s in stats.values())
+    
+    return {
+        "status": "ready",
+        "total_documents": total,
+        "collections": stats
+    }
+
+
+# ============================================================================
+# LLM-Powered Analysis Endpoints
+# ============================================================================
+
+class LLMAnalysisRequest(BaseModel):
+    text: str
+    url: Optional[str] = None
+    use_llm: bool = True  # If False, falls back to rule-based
+
+
+class LLMComplianceCheck(BaseModel):
+    id: str
+    name: str
+    status: str
+    message: str
+    reference: str
+    url: str
+    recommendation: str
+    highlight_text: Optional[str] = None
+    confidence: float = 0.0
+
+
+class LLMAnalysisResponse(BaseModel):
+    overall_status: str
+    risk_score: int
+    completeness_score: int
+    checks: List[LLMComplianceCheck]
+    summary: str
+    sources: List[dict]
+    anonymized_text: str
+    analysis_mode: str  # "llm" or "rule-based"
+
+
+@app.post("/analyze/llm", response_model=LLMAnalysisResponse)
+async def analyze_with_llm(request: LLMAnalysisRequest):
+    """
+    Analyze document using RAG + LLM pipeline
+    
+    This endpoint uses:
+    1. RAG to retrieve relevant legal context from Canadian immigration laws
+    2. LLM (Ollama gpt-oss:120b-cloud) to analyze compliance
+    3. Structured output with legal citations
+    """
+    global compliance_chain, llm_client
+    
+    # Initialize chain on-demand if not ready
+    if not compliance_chain and retriever:
+        import os
+        ollama_model = os.environ.get("OLLAMA_MODEL", "gpt-oss:120b-cloud")
+        try:
+            if not llm_client:
+                llm_client = OllamaClient(model=ollama_model)
+            if llm_client.is_available():
+                compliance_chain = ComplianceChain(retriever=retriever, llm_client=llm_client)
+        except Exception as e:
+            print(f"[OLI] On-demand chain init failed: {e}")
+    
+    if not compliance_chain:
+        # Fall back to rule-based if LLM not available
+        if not request.use_llm:
+            raise HTTPException(
+                status_code=503,
+                detail="LLM not available. Use /analyze for rule-based analysis."
+            )
+    
+    try:
+        # Run async analysis
+        if compliance_chain:
+            result = await compliance_chain.analyze_async(
+                document_text=request.text,
+                url=request.url
+            )
+            analysis_mode = "llm"
+        else:
+            # Fallback to rule-based
+            safe_text = anonymize_text(request.text)
+            checks = [
+                check_financial_threshold(request.text),
+                check_document_validity(request.text),
+                check_identity_fields(request.text),
+                check_proof_of_funds(request.text)
+            ]
+            
+            return LLMAnalysisResponse(
+                overall_status=determine_overall_status(checks).value,
+                risk_score=calculate_risk_score(checks),
+                completeness_score=calculate_completeness(checks),
+                checks=[
+                    LLMComplianceCheck(
+                        id=c.id,
+                        name=c.name,
+                        status=c.status.value,
+                        message=c.message,
+                        reference=c.reference,
+                        url=c.url,
+                        recommendation=c.recommendation,
+                        highlight_text=c.highlight_text,
+                        confidence=0.9
+                    ) for c in checks
+                ],
+                summary=generate_summary(checks, determine_overall_status(checks)),
+                sources=[],
+                anonymized_text=safe_text,
+                analysis_mode="rule-based"
+            )
+        
+        return LLMAnalysisResponse(
+            overall_status=result.overall_status,
+            risk_score=result.risk_score,
+            completeness_score=result.completeness_score,
+            checks=[
+                LLMComplianceCheck(
+                    id=c.id,
+                    name=c.name,
+                    status=c.status,
+                    message=c.message,
+                    reference=c.reference,
+                    url=c.url,
+                    recommendation=c.recommendation,
+                    highlight_text=c.highlight_text,
+                    confidence=c.confidence
+                ) for c in result.checks
+            ],
+            summary=result.summary,
+            sources=result.sources,
+            anonymized_text=result.anonymized_text,
+            analysis_mode=analysis_mode
+        )
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Analysis failed: {str(e)}"
+        )
+
+
+@app.get("/llm/status")
+async def get_llm_status():
+    """Check LLM availability and model info"""
+    if not llm_client:
+        return {
+            "status": "unavailable",
+            "message": "LLM client not initialized"
+        }
+    
+    try:
+        is_available = llm_client.is_available()
+        models = llm_client.list_models()
+        
+        return {
+            "status": "ready" if is_available else "model_not_found",
+            "model": llm_client.model,
+            "base_url": llm_client.base_url,
+            "available_models": models,
+            "chain_ready": compliance_chain is not None
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": str(e)
+        }
 
 
 if __name__ == "__main__":
