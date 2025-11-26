@@ -46,8 +46,18 @@ OLI is an innovative Chrome extension that acts as an "administrative augmented 
 - **Advanced Anonymization** with Microsoft Presidio (NER + regex)
 - **Canadian PII**: SIN, UCI, postal codes, passports
 - **Standard PII**: Names, emails, phone numbers, credit cards
-- Automatic language detection (French/English)
-- No personal data sent to the LLM
+- **Automatic language detection** (French/English)
+- **No personal data sent to the LLM**
+
+### 🎨 Accessibility & Display
+- **Fully Translated Interface** (English)
+- **Display Modes**:
+  - ☀️ Standard Mode
+  - 🌙 **Dark Mode** (Optimized for low light)
+  - 👁️ **High Contrast** (For visual impairments)
+  - 🔠 **Senior Mode** (Larger text)
+- **Persistence**: Settings are saved between sessions
+
 
 ## Architecture
 
