@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { 
   AlertTriangle, 
   CheckCircle, 
@@ -15,11 +15,17 @@ import {
   Clock,
   ShieldCheck,
   ShieldAlert,
-  ShieldX
+  ShieldX,
+  Sparkles,
+  Zap,
+  BookOpen,
+  Brain,
+  FileType
 } from 'lucide-react'
 import { cn } from './lib/utils'
+import { pdfHandler, type DetectedPDF } from './lib/pdf-handler'
 
-// Types matching the new backend response
+// Types matching the LLM backend response
 interface ComplianceCheck {
   id: string;
   name: string;
@@ -29,6 +35,14 @@ interface ComplianceCheck {
   url: string;
   recommendation: string;
   highlight_text: string | null;
+  confidence?: number;
+}
+
+interface LegalSource {
+  title: string;
+  url: string;
+  doc_type?: string;
+  section?: string;
 }
 
 interface AnalysisResult {
@@ -38,7 +52,11 @@ interface AnalysisResult {
   checks: ComplianceCheck[];
   anonymized_text: string;
   summary: string;
+  sources?: LegalSource[];
+  analysis_mode?: 'llm' | 'rule-based';
 }
+
+type AnalysisMode = 'llm' | 'fast';
 
 // Status configuration
 const statusConfig = {
@@ -185,9 +203,17 @@ function AlertCard({ check, index }: { check: ComplianceCheck; index: number }) 
       </div>
       
       <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
-        <span className="text-xs text-slate-400 bg-slate-50 px-2 py-1 rounded font-mono">
-          {check.reference}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-slate-400 bg-slate-50 px-2 py-1 rounded font-mono">
+            {check.reference}
+          </span>
+          {check.confidence !== undefined && (
+            <span className="text-xs text-slate-400 flex items-center gap-1">
+              <Sparkles className="w-3 h-3" />
+              {Math.round(check.confidence * 100)}%
+            </span>
+          )}
+        </div>
         <a
           href={check.url}
           target="_blank"
@@ -218,15 +244,211 @@ function StatusBadge({ status }: { status: 'CONFORME' | 'AVERTISSEMENT' | 'CRITI
   );
 }
 
+// Sources List Component
+function SourcesList({ sources }: { sources: LegalSource[] }) {
+  if (!sources || sources.length === 0) return null;
+  
+  return (
+    <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+      <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+        <BookOpen className="w-3 h-3" />
+        Sources légales ({sources.length})
+      </h4>
+      <div className="space-y-2">
+        {sources.slice(0, 4).map((source, i) => (
+          <a
+            key={i}
+            href={source.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-start gap-2 p-2 rounded-lg hover:bg-white transition-colors group"
+          >
+            <FileType className="w-4 h-4 text-slate-400 mt-0.5 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm text-slate-700 group-hover:text-primary truncate">
+                {source.title}
+              </p>
+              {source.section && (
+                <p className="text-xs text-slate-400">Section {source.section}</p>
+              )}
+            </div>
+            <ExternalLink className="w-3 h-3 text-slate-300 group-hover:text-primary shrink-0" />
+          </a>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Analysis Mode Toggle Component
+function ModeToggle({ 
+  mode, 
+  onChange 
+}: { 
+  mode: AnalysisMode; 
+  onChange: (mode: AnalysisMode) => void 
+}) {
+  return (
+    <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-lg">
+      <button
+        onClick={() => onChange('fast')}
+        className={cn(
+          "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all",
+          mode === 'fast' 
+            ? "bg-white text-slate-900 shadow-sm" 
+            : "text-slate-500 hover:text-slate-700"
+        )}
+      >
+        <Zap className="w-3 h-3" />
+        Rapide
+      </button>
+      <button
+        onClick={() => onChange('llm')}
+        className={cn(
+          "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all",
+          mode === 'llm' 
+            ? "bg-white text-slate-900 shadow-sm" 
+            : "text-slate-500 hover:text-slate-700"
+        )}
+      >
+        <Brain className="w-3 h-3" />
+        IA
+      </button>
+    </div>
+  );
+}
+
 function App() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [analysisMode, setAnalysisMode] = useState<AnalysisMode>('llm');
+  const [loadingMessage, setLoadingMessage] = useState('');
+  const [detectedPDFs, setDetectedPDFs] = useState<DetectedPDF[]>([]);
+
+  // Detect PDFs when component mounts
+  useEffect(() => {
+    detectPDFs();
+  }, []);
+
+  // Detect PDFs on the current page
+  const detectPDFs = async () => {
+    try {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (!tab.id) return;
+
+      const results = await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        func: () => {
+          const detected: Array<{url: string; type: string}> = [];
+          
+          // Check embed elements
+          document.querySelectorAll('embed[type="application/pdf"]').forEach(el => {
+            const src = (el as HTMLEmbedElement).src;
+            if (src) detected.push({ url: src, type: 'embed' });
+          });
+          
+          // Check iframes with PDF
+          document.querySelectorAll('iframe').forEach(el => {
+            const src = el.src;
+            if (src && (src.endsWith('.pdf') || src.includes('.pdf?'))) {
+              detected.push({ url: src, type: 'iframe' });
+            }
+          });
+          
+          // Check links to PDFs
+          document.querySelectorAll('a[href$=".pdf"]').forEach(el => {
+            const href = (el as HTMLAnchorElement).href;
+            if (href) detected.push({ url: href, type: 'link' });
+          });
+          
+          // Check if current page is PDF
+          if (window.location.href.toLowerCase().endsWith('.pdf')) {
+            detected.push({ url: window.location.href, type: 'direct' });
+          }
+          
+          return detected;
+        }
+      });
+
+      if (results[0]?.result) {
+        setDetectedPDFs(results[0].result as DetectedPDF[]);
+      }
+    } catch (err) {
+      console.error('PDF detection failed:', err);
+    }
+  };
+
+  // Extract text from a PDF URL
+  const extractPDFText = async (pdfUrl: string): Promise<string | null> => {
+    try {
+      setLoadingMessage('Extraction du PDF...');
+      const result = await pdfHandler.extractFromUrl(pdfUrl);
+      if (result.success) {
+        return result.fullText;
+      }
+      throw new Error(result.error || 'PDF extraction failed');
+    } catch (err) {
+      console.error('PDF extraction failed:', err);
+      return null;
+    }
+  };
+
+  // Analyze a detected PDF
+  const analyzePDF = async (pdf: DetectedPDF) => {
+    setLoading(true);
+    setResult(null);
+    setError(null);
+    setLoadingMessage('Extraction du PDF...');
+
+    try {
+      const text = await extractPDFText(pdf.url);
+      if (!text) {
+        throw new Error('Impossible d\'extraire le texte du PDF');
+      }
+      
+      // Analyze with LLM
+      setLoadingMessage('Recherche du contexte légal...');
+      setTimeout(() => setLoadingMessage('Analyse IA en cours...'), 1500);
+
+      const endpoint = analysisMode === 'llm' 
+        ? 'http://localhost:8001/analyze/llm' 
+        : 'http://localhost:8001/analyze';
+      
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erreur serveur: ${response.status}`);
+      }
+
+      const data: AnalysisResult = await response.json();
+      setResult(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur inconnue');
+    } finally {
+      setLoading(false);
+      setLoadingMessage('');
+    }
+  };
 
   const scanPage = async () => {
     setLoading(true);
     setResult(null);
     setError(null);
+    
+    // Show progressive loading messages for LLM mode
+    if (analysisMode === 'llm') {
+      setLoadingMessage('Extraction du contenu...');
+      setTimeout(() => setLoadingMessage('Recherche du contexte légal...'), 1500);
+      setTimeout(() => setLoadingMessage('Analyse IA en cours...'), 3000);
+    }
+
+    // Also detect PDFs
+    detectPDFs();
 
     try {
       // 1. Get active tab
@@ -243,8 +465,12 @@ function App() {
 
       const pageText = injectionResults[0].result;
 
-      // 3. Send to Backend
-      const response = await fetch('http://localhost:8001/analyze', {
+      // 3. Send to Backend (LLM or Fast mode)
+      const endpoint = analysisMode === 'llm' 
+        ? 'http://localhost:8001/analyze/llm' 
+        : 'http://localhost:8001/analyze';
+      
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -291,6 +517,7 @@ function App() {
       setError(err instanceof Error ? err.message : "Erreur inconnue");
     } finally {
       setLoading(false);
+      setLoadingMessage('');
     }
   };
 
@@ -304,41 +531,76 @@ function App() {
   return (
     <div className="w-full min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 text-slate-900 font-sans">
       {/* Header with Glass Effect */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-slate-200/50 p-4 flex items-center justify-between sticky top-0 z-10">
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <div className="absolute inset-0 bg-primary/20 blur-lg rounded-xl"></div>
-            <div className="relative bg-gradient-to-br from-primary to-blue-700 text-white p-2 rounded-xl shadow-lg">
-              <Shield className="w-5 h-5" />
+      <header className="bg-white/80 backdrop-blur-md border-b border-slate-200/50 p-4 sticky top-0 z-10">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <div className="absolute inset-0 bg-primary/20 blur-lg rounded-xl"></div>
+              <div className="relative bg-gradient-to-br from-primary to-blue-700 text-white p-2 rounded-xl shadow-lg">
+                <Shield className="w-5 h-5" />
+              </div>
+            </div>
+            <div>
+              <h1 className="font-bold text-lg tracking-tight bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
+                OLI
+              </h1>
+              <p className="text-[10px] text-slate-400 -mt-0.5">Overlay Legal Intelligence</p>
             </div>
           </div>
-          <div>
-            <h1 className="font-bold text-lg tracking-tight bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
-              OLI
-            </h1>
-            <p className="text-[10px] text-slate-400 -mt-0.5">Overlay Legal Intelligence</p>
+          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-full text-xs font-medium border border-emerald-100 shadow-sm">
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            Actif
           </div>
         </div>
-        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-full text-xs font-medium border border-emerald-100 shadow-sm">
-          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-          Actif
-        </div>
+        <ModeToggle mode={analysisMode} onChange={setAnalysisMode} />
       </header>
 
       <main className="p-4 space-y-5 pb-24">
         {/* Initial State */}
         {!result && !loading && !error && (
-          <div className="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 flex flex-col items-center text-center">
-            <div className="relative mb-4">
-              <div className="absolute inset-0 bg-primary/5 blur-2xl rounded-full"></div>
-              <div className="relative bg-slate-50 p-6 rounded-2xl border border-slate-100">
-                <FileText className="w-12 h-12 text-slate-300" />
+          <div className="space-y-4">
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 flex flex-col items-center text-center">
+              <div className="relative mb-4">
+                <div className="absolute inset-0 bg-primary/5 blur-2xl rounded-full"></div>
+                <div className="relative bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                  <FileText className="w-12 h-12 text-slate-300" />
+                </div>
               </div>
+              <h2 className="text-lg font-semibold text-slate-700 mb-1">Prêt à analyser</h2>
+              <p className="text-sm text-slate-400 max-w-[200px]">
+                Cliquez sur le bouton ci-dessous pour scanner la page active
+              </p>
             </div>
-            <h2 className="text-lg font-semibold text-slate-700 mb-1">Prêt à analyser</h2>
-            <p className="text-sm text-slate-400 max-w-[200px]">
-              Cliquez sur le bouton ci-dessous pour scanner la page active
-            </p>
+            
+            {/* Detected PDFs */}
+            {detectedPDFs.length > 0 && (
+              <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+                <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <FileType className="w-3 h-3" />
+                  PDFs détectés ({detectedPDFs.length})
+                </h3>
+                <div className="space-y-2">
+                  {detectedPDFs.map((pdf, i) => (
+                    <button
+                      key={i}
+                      onClick={() => analyzePDF(pdf)}
+                      className="w-full flex items-center gap-3 p-3 rounded-xl bg-slate-50 hover:bg-violet-50 border border-slate-100 hover:border-violet-200 transition-all text-left group"
+                    >
+                      <div className="p-2 rounded-lg bg-violet-100 text-violet-600">
+                        <FileType className="w-4 h-4" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-slate-700 truncate group-hover:text-violet-700">
+                          {pdf.url.split('/').pop() || 'Document PDF'}
+                        </p>
+                        <p className="text-xs text-slate-400">{pdf.type}</p>
+                      </div>
+                      <Brain className="w-4 h-4 text-slate-300 group-hover:text-violet-500" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -422,10 +684,37 @@ function App() {
               ))}
             </div>
 
-            {/* Privacy Notice */}
-            <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 text-xs text-slate-500 flex items-center gap-2">
-              <Shield className="w-3.5 h-3.5 text-primary" />
-              <span>Données anonymisées avant traitement IA (Presidio)</span>
+            {/* Sources from RAG */}
+            {result.sources && result.sources.length > 0 && (
+              <SourcesList sources={result.sources} />
+            )}
+
+            {/* Analysis Mode & Privacy Notice */}
+            <div className="space-y-2">
+              {result.analysis_mode && (
+                <div className={cn(
+                  "p-3 rounded-xl border text-xs flex items-center gap-2",
+                  result.analysis_mode === 'llm' 
+                    ? "bg-violet-50 border-violet-100 text-violet-600"
+                    : "bg-slate-50 border-slate-100 text-slate-500"
+                )}>
+                  {result.analysis_mode === 'llm' ? (
+                    <>
+                      <Brain className="w-3.5 h-3.5" />
+                      <span>Analyse IA avec RAG - Contexte légal récupéré</span>
+                    </>
+                  ) : (
+                    <>
+                      <Zap className="w-3.5 h-3.5" />
+                      <span>Analyse rapide basée sur règles</span>
+                    </>
+                  )}
+                </div>
+              )}
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 text-xs text-slate-500 flex items-center gap-2">
+                <Shield className="w-3.5 h-3.5 text-primary" />
+                <span>Données anonymisées avant traitement</span>
+              </div>
             </div>
           </>
         )}
@@ -433,6 +722,11 @@ function App() {
 
       {/* Floating Action Button */}
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-slate-100 via-slate-100 to-transparent">
+        {loading && loadingMessage && (
+          <div className="mb-3 text-center">
+            <p className="text-sm text-slate-500 animate-pulse">{loadingMessage}</p>
+          </div>
+        )}
         <button
           onClick={scanPage}
           disabled={loading}
@@ -443,18 +737,20 @@ function App() {
             "active:scale-[0.98]",
             loading 
               ? "bg-slate-200 text-slate-500" 
-              : "bg-gradient-to-r from-primary to-blue-600 text-white hover:shadow-xl hover:shadow-primary/25"
+              : analysisMode === 'llm'
+                ? "bg-gradient-to-r from-violet-600 to-purple-600 text-white hover:shadow-xl hover:shadow-violet-500/25"
+                : "bg-gradient-to-r from-primary to-blue-600 text-white hover:shadow-xl hover:shadow-primary/25"
           )}
         >
           {loading ? (
             <>
               <Loader2 className="w-5 h-5 animate-spin" />
-              Analyse en cours...
+              {analysisMode === 'llm' ? 'Analyse IA...' : 'Analyse...'}
             </>
           ) : (
             <>
-              <Shield className="w-5 h-5" />
-              Scanner la page
+              {analysisMode === 'llm' ? <Brain className="w-5 h-5" /> : <Shield className="w-5 h-5" />}
+              {analysisMode === 'llm' ? 'Analyser avec IA' : 'Scanner la page'}
             </>
           )}
         </button>

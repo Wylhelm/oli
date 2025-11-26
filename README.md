@@ -6,7 +6,7 @@
 
 OLI est une extension Chrome innovante qui agit comme une "surcouche de réalité augmentée administrative". Elle analyse en temps réel les documents et formulaires des systèmes gouvernementaux legacy pour identifier automatiquement les non-conformités réglementaires.
 
-**Nouveauté v2.0** : Intégration RAG + LLM pour une analyse intelligente basée sur la législation canadienne réelle.
+**Nouveauté Phase 2** : Intégration RAG + LLM pour une analyse intelligente basée sur la législation canadienne réelle.
 
 ## Fonctionnalités
 
