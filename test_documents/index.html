@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OLI - Test Documents PDF</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #1e3a5f 0%, #0d1b2a 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+            color: #e2e8f0;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+        }
+        
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .subtitle {
+            color: #94a3b8;
+            margin-top: 8px;
+        }
+        
+        .instructions {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 30px;
+        }
+        
+        .instructions h2 {
+            font-size: 1.1rem;
+            margin-bottom: 16px;
+            color: #60a5fa;
+        }
+        
+        .instructions ol {
+            padding-left: 24px;
+            line-height: 1.8;
+            color: #cbd5e1;
+        }
+        
+        .instructions code {
+            background: rgba(59, 130, 246, 0.2);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        
+        .documents {
+            display: grid;
+            gap: 20px;
+        }
+        
+        .doc-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 24px;
+            transition: all 0.3s ease;
+        }
+        
+        .doc-card:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        .doc-card.critical {
+            border-left: 4px solid #ef4444;
+        }
+        
+        .doc-card.warning {
+            border-left: 4px solid #f59e0b;
+        }
+        
+        .doc-card.compliant {
+            border-left: 4px solid #10b981;
+        }
+        
+        .doc-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+        
+        .doc-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #f1f5f9;
+            margin-bottom: 4px;
+        }
+        
+        .doc-type {
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+        
+        .status-badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .status-badge.critical {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+        }
+        
+        .status-badge.warning {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fcd34d;
+        }
+        
+        .status-badge.compliant {
+            background: rgba(16, 185, 129, 0.2);
+            color: #6ee7b7;
+        }
+        
+        .doc-details {
+            margin-bottom: 20px;
+        }
+        
+        .detail-item {
+            display: flex;
+            gap: 12px;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.9rem;
+        }
+        
+        .detail-label {
+            color: #64748b;
+            min-width: 140px;
+        }
+        
+        .detail-value {
+            color: #e2e8f0;
+        }
+        
+        .detail-value.highlight {
+            color: #ef4444;
+            font-weight: 600;
+        }
+        
+        .detail-value.good {
+            color: #10b981;
+            font-weight: 600;
+        }
+        
+        .doc-actions {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: none;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+        
+        .btn-primary:hover {
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+            transform: translateY(-1px);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #e2e8f0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            color: #64748b;
+            font-size: 0.85rem;
+        }
+        
+        footer a {
+            color: #60a5fa;
+            text-decoration: none;
+        }
+        
+        .portal-link {
+            text-decoration: none;
+            display: block;
+            margin-bottom: 30px;
+        }
+        
+        .portal-card {
+            background: linear-gradient(135deg, #8B0000 0%, #6B0000 100%);
+            border: 2px solid #FEC30D;
+            border-radius: 16px;
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(139, 0, 0, 0.3);
+        }
+        
+        .portal-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(139, 0, 0, 0.4);
+        }
+        
+        .portal-icon {
+            font-size: 48px;
+            flex-shrink: 0;
+        }
+        
+        .portal-info {
+            flex: 1;
+        }
+        
+        .portal-info h3 {
+            color: white;
+            font-size: 1.3rem;
+            margin: 0 0 4px 0;
+        }
+        
+        .portal-info p {
+            color: rgba(255, 255, 255, 0.8);
+            margin: 0;
+            font-size: 0.9rem;
+        }
+        
+        .portal-desc {
+            margin-top: 8px !important;
+            font-size: 0.8rem !important;
+            color: rgba(255, 255, 255, 0.6) !important;
+        }
+        
+        .portal-arrow {
+            font-size: 2rem;
+            color: #FEC30D;
+            transition: transform 0.3s ease;
+        }
+        
+        .portal-card:hover .portal-arrow {
+            transform: translateX(5px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <div class="logo-icon">🛡️</div>
+                <h1>OLI Test Documents</h1>
+            </div>
+            <p class="subtitle">Documents PDF pour tester l'analyse OLI</p>
+        </header>
+        
+        <div class="instructions">
+            <h2>📋 Instructions de test</h2>
+            <ol>
+                <li>Ouvrez l'extension OLI (cliquez sur l'icône 🛡️)</li>
+                <li>Les PDFs ci-dessous seront automatiquement détectés</li>
+                <li>Cliquez sur un PDF dans le panneau OLI pour l'analyser</li>
+                <li>Alternativement, ouvrez un PDF directement puis lancez OLI</li>
+                <li>Testez les deux modes: <code>Rapide</code> et <code>IA</code></li>
+            </ol>
+        </div>
+        
+        <!-- Legacy Portal Link -->
+        <a href="legacy-portal.html" class="portal-link">
+            <div class="portal-card">
+                <div class="portal-icon">🍁</div>
+                <div class="portal-info">
+                    <h3>Portail Legacy IRCC</h3>
+                    <p>Système de Traitement des Demandes v4.2.1</p>
+                    <p class="portal-desc">Simulateur du portail gouvernemental avec données de test (Sophie Martin, UCI-99887766)</p>
+                </div>
+                <div class="portal-arrow">→</div>
+            </div>
+        </a>
+        
+        <div class="documents">
+            <!-- Document 1: Non-compliant bank statement -->
+            <div class="doc-card critical">
+                <div class="doc-header">
+                    <div>
+                        <div class="doc-title">📄 Relevé Bancaire (Non-conforme)</div>
+                        <div class="doc-type">Banque Nationale de Paris - Certifié</div>
+                    </div>
+                    <span class="status-badge critical">Critique</span>
+                </div>
+                <div class="doc-details">
+                    <div class="detail-item">
+                        <span class="detail-label">Demandeur:</span>
+                        <span class="detail-value">Sophie Marie Martin</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">UCI:</span>
+                        <span class="detail-value">UCI-99887766</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Solde moyen:</span>
+                        <span class="detail-value highlight">5,000.00 $ CAD (< LICO)</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Date du relevé:</span>
+                        <span class="detail-value highlight">2024-01-15 (> 6 mois)</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Problèmes attendus:</span>
+                        <span class="detail-value">LICO insuffisant, Document périmé</span>
+                    </div>
+                </div>
+                <div class="doc-actions">
+                    <a href="releve_bancaire.pdf" target="_blank" class="btn btn-primary">
+                        📥 Ouvrir le PDF
+                    </a>
+                    <a href="releve_bancaire.pdf" download class="btn btn-secondary">
+                        💾 Télécharger
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Document 2: Immigration form -->
+            <div class="doc-card warning">
+                <div class="doc-header">
+                    <div>
+                        <div class="doc-title">📋 Formulaire Immigration IMM 0008</div>
+                        <div class="doc-type">IRCC - Demande de résidence permanente</div>
+                    </div>
+                    <span class="status-badge warning">Avertissement</span>
+                </div>
+                <div class="doc-details">
+                    <div class="detail-item">
+                        <span class="detail-label">Demandeur:</span>
+                        <span class="detail-value">Sophie Marie Martin</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">UCI:</span>
+                        <span class="detail-value">UCI-99887766</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Fonds déclarés:</span>
+                        <span class="detail-value highlight">5,000.00 $ CAD</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Passeport:</span>
+                        <span class="detail-value">12AB34567 (exp. 2026-08-15)</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Problèmes attendus:</span>
+                        <span class="detail-value">Fonds insuffisants, Documents anciens</span>
+                    </div>
+                </div>
+                <div class="doc-actions">
+                    <a href="formulaire_immigration.pdf" target="_blank" class="btn btn-primary">
+                        📥 Ouvrir le PDF
+                    </a>
+                    <a href="formulaire_immigration.pdf" download class="btn btn-secondary">
+                        💾 Télécharger
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Document 3: Compliant statement -->
+            <div class="doc-card compliant">
+                <div class="doc-header">
+                    <div>
+                        <div class="doc-title">✅ Relevé Bancaire (Conforme)</div>
+                        <div class="doc-type">Royal Bank of Canada - Certifié</div>
+                    </div>
+                    <span class="status-badge compliant">Conforme</span>
+                </div>
+                <div class="doc-details">
+                    <div class="detail-item">
+                        <span class="detail-label">Demandeur:</span>
+                        <span class="detail-value">Jean-Claude Tremblay</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">UCI:</span>
+                        <span class="detail-value">UCI-12345678</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Solde moyen:</span>
+                        <span class="detail-value good">32,500.00 $ CAD (> LICO ✓)</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Date du relevé:</span>
+                        <span class="detail-value good">Récent (< 6 mois ✓)</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Résultat attendu:</span>
+                        <span class="detail-value good">Toutes les vérifications passent</span>
+                    </div>
+                </div>
+                <div class="doc-actions">
+                    <a href="releve_conforme.pdf" target="_blank" class="btn btn-primary">
+                        📥 Ouvrir le PDF
+                    </a>
+                    <a href="releve_conforme.pdf" download class="btn btn-secondary">
+                        💾 Télécharger
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>OLI - Overlay Legal Intelligence | <a href="legacy-portal.html">Portail Legacy IRCC</a> | <a href="https://github.com/Wylhelm/oli">GitHub</a></p>
+        </footer>
+    </div>
+</body>
+</html>
+
