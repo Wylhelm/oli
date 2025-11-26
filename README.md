@@ -36,6 +36,7 @@ OLI is an innovative Chrome extension that acts as an "administrative augmented 
 
 ### 🎯 Advanced DOM Injection
 - **Intelligent Highlighting** of at-risk fields
+- **Form Input Support**: Analyzes user-entered data in real-time simulation
 - Automatic detection in forms and tables
 - Interactive tooltips positioned next to the correct field
 - Alert badges (!, ?, ✓) on highlighted elements
@@ -57,6 +58,11 @@ OLI is an innovative Chrome extension that acts as an "administrative augmented 
   - 👁️ **High Contrast** (For visual impairments)
   - 🔠 **Senior Mode** (Larger text)
 - **Persistence**: Settings are saved between sessions
+
+### 👥 Citizen-Centric Simulation
+- **Citizen Application Mode**: Simulates a public-facing immigration form
+- **Real-time Guidance**: Helps citizens verify their own applications before submission
+- **Proactive Correction**: Reduces errors at the source, lightening the load for agents
 
 
 ## Architecture
@@ -93,6 +99,7 @@ OLI/
 │   └── dist/                  # Production build
 ├── test_documents/             # Test documents
 │   ├── legacy-portal.html     # Simulated IRCC portal (4 test cases)
+│   ├── citizen_form.html      # NEW: Simulated citizen application form
 │   ├── index.html             # Test hub
 │   └── *.pdf                  # Generated test PDFs
 ├── logo.png                    # OLI logo source
@@ -180,13 +187,19 @@ python serve_test_docs.py
 
 ## Demonstration
 
-### Scenario: Immigration Case Analysis
+### Scenario 1: Employee View (Legacy Portal)
 
 1. **Start the test server**: `python serve_test_docs.py`
 2. **Open the legacy portal**: http://localhost:8080/legacy-portal.html
 3. **Select a test case**: Sophie Martin (critical), Jean-Claude (compliant), etc.
 4. **Activate OLI**: Click on the extension icon (🛡️)
 5. **Scan the page**: Click "Analyze with AI"
+
+### Scenario 2: Citizen View (Public Form)
+
+1. **Open the citizen form**: http://localhost:8080/citizen_form.html
+2. **Autofill Data**: Select a profile (e.g., Sophie) and click "Autofill Form"
+3. **Analyze**: Click "Analyze with AI" to see real-time feedback on input fields
 
 ### Available Test Cases
 

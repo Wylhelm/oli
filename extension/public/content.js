@@ -65,10 +65,23 @@
 
     // Show tooltip
     function showTooltip(element, content, status) {
+        if (!element) {
+            console.warn("[OLI] showTooltip called with no element");
+            return;
+        }
+        
         createTooltip();
         
         const colors = STATUS_COLORS[status] || STATUS_COLORS.CRITIQUE;
         const rect = element.getBoundingClientRect();
+        
+        // Validate rect - if element is not visible or has no size, don't show tooltip
+        if (!rect || rect.width === 0 || rect.height === 0) {
+            console.warn("[OLI] Element has invalid bounding rect:", rect);
+            return;
+        }
+        
+        console.log("[OLI] showTooltip - element:", element.tagName, "rect:", rect);
         
         tooltipElement.innerHTML = `
             <div style="display: flex; align-items: flex-start; gap: 10px;">
@@ -94,7 +107,6 @@
         
         // Position tooltip - use fixed positioning relative to viewport
         // getBoundingClientRect() already gives viewport-relative coordinates
-        // For fixed positioning, we DON'T add scrollY
         
         // First render to get tooltip dimensions
         tooltipElement.style.visibility = 'hidden';
@@ -120,14 +132,17 @@
             left = window.innerWidth - tooltipWidth - 10;
         }
         
-        // Update arrow position if needed
+        // Calculate arrow position to point to the element center
+        const arrowLeft = Math.max(15, Math.min(rect.left + rect.width/2 - left - 6, tooltipWidth - 25));
+        
+        // Update arrow position
         const arrow = tooltipElement.querySelector('.oli-tooltip-arrow');
         if (arrow) {
             if (arrowOnTop) {
                 arrow.style.cssText = `
                     position: absolute;
                     top: -6px;
-                    left: ${Math.min(Math.max(rect.left + rect.width/2 - left - 6, 15), tooltipWidth - 25)}px;
+                    left: ${arrowLeft}px;
                     width: 12px;
                     height: 12px;
                     background: #1E293B;
@@ -138,7 +153,7 @@
                 arrow.style.cssText = `
                     position: absolute;
                     bottom: -6px;
-                    left: ${Math.min(Math.max(rect.left + rect.width/2 - left - 6, 15), tooltipWidth - 25)}px;
+                    left: ${arrowLeft}px;
                     width: 12px;
                     height: 12px;
                     background: #0F172A;
@@ -169,8 +184,34 @@
             if (el.parentNode && el.dataset.oliOriginal) {
                 const textNode = document.createTextNode(el.dataset.oliOriginal);
                 el.parentNode.replaceChild(textNode, el);
+            } else {
+                // Restore existing elements
+                el.classList.remove('oli-highlight', 'oli-focus-highlight');
+                // Restore original styles if saved
+                if (el.dataset.oliOriginalStyle !== undefined) {
+                    el.setAttribute('style', el.dataset.oliOriginalStyle);
+                } else {
+                    el.removeAttribute('style');
+                }
+                delete el.dataset.oliStatus;
+                delete el.dataset.oliMessage;
+                delete el.dataset.oliOriginalStyle;
+                delete el.dataset.oliBadgeCreated;
+                delete el.dataset.oliMouseEnter;
+                delete el.dataset.oliMouseLeave;
             }
         });
+        
+        // Remove all badges (including fixed position badges)
+        document.querySelectorAll('.oli-badge').forEach(b => {
+            // Clean up scroll listeners if attached
+            if (b.dataset.cleanup === 'scroll-listener') {
+                // Note: we can't easily remove specific scroll listeners, but they'll be cleaned up when badge is removed
+                // In production, consider storing listener references for proper cleanup
+            }
+            b.remove();
+        });
+        
         highlightedElements = [];
     }
 
@@ -341,6 +382,51 @@
         }
     }
 
+    // Extract form data from the page
+    function extractFormData() {
+        const formData = [];
+        const inputs = document.querySelectorAll('input, select, textarea');
+        
+        inputs.forEach(input => {
+            // Skip utility inputs
+            if (input.type === 'hidden' || input.type === 'submit' || input.type === 'button' || 
+                input.type === 'image' || input.type === 'file') return;
+            
+            // Skip empty inputs
+            if (!input.value || input.value.trim() === '') return;
+            
+            // Find label
+            let label = '';
+            if (input.id) {
+                const labelEl = document.querySelector(`label[for="${input.id}"]`);
+                if (labelEl) label = labelEl.textContent.trim().replace(/\*$/, '').trim();
+            }
+            if (!label && input.closest('label')) {
+                label = input.closest('label').textContent.trim().replace(/\*$/, '').trim();
+            }
+            if (!label) {
+                const formGroup = input.closest('.form-group, .field, .col');
+                if (formGroup) {
+                    const labelEl = formGroup.querySelector('label');
+                    if (labelEl) label = labelEl.textContent.trim().replace(/\*$/, '').trim();
+                }
+            }
+            
+            // Use name or id as fallback label
+            if (!label) {
+                label = input.name || input.id || input.placeholder || 'Unknown Field';
+            }
+            
+            formData.push({
+                label: label,
+                value: input.value,
+                name: input.name || input.id
+            });
+        });
+        
+        return formData;
+    }
+
     // Extract key value from text (e.g., "15 000 $" from "Solde moyen (6 mois) : 15 000 $")
     function extractKeyValue(text) {
         // Try to extract monetary values
@@ -362,7 +448,92 @@
 
     // Find the best matching element for a search text
     function findBestMatchElement(searchText, keyValue) {
-        // Priority 1: Look for value elements in fields (common in forms)
+        console.log("[OLI Content] findBestMatchElement - searchText:", searchText, "keyValue:", keyValue);
+        
+        // Try to extract Label from "Field [Label]: Value" format
+        let targetLabel = null;
+        const labelMatch = searchText.match(/Field \[(.*?)\]:/);
+        if (labelMatch && labelMatch[1]) {
+            targetLabel = labelMatch[1].trim();
+            console.log("[OLI Content] Target label extracted:", targetLabel);
+        }
+
+        // Priority 0: Look for input values (Direct match in form fields)
+        const inputs = document.querySelectorAll('input, select, textarea');
+        let bestInput = null;
+        let bestInputScore = 0;
+        
+        for (const input of inputs) {
+            // Skip utility inputs
+            if (input.type === 'hidden' || input.type === 'submit' || input.type === 'button' || input.type === 'image') continue;
+            
+            let matchScore = 0;
+            
+            // Check value match - normalize values for comparison
+            const normalizedValue = input.value.replace(/\s+/g, ' ').trim();
+            const normalizedKeyValue = keyValue.replace(/\s+/g, ' ').trim();
+            
+            if (normalizedValue && (
+                normalizedValue.includes(normalizedKeyValue) || 
+                normalizedKeyValue.includes(normalizedValue) ||
+                normalizedValue === normalizedKeyValue
+            )) {
+                matchScore += 10; // Strong value match
+                console.log("[OLI Content] Value match for input:", input.name || input.id, "value:", input.value);
+            }
+            
+            // Check label match if available
+            if (targetLabel) {
+                // Check name/id - case insensitive partial match
+                const nameLower = (input.name || '').toLowerCase();
+                const idLower = (input.id || '').toLowerCase();
+                const labelLower = targetLabel.toLowerCase();
+                
+                if (nameLower.includes(labelLower) || labelLower.includes(nameLower) ||
+                    idLower.includes(labelLower) || labelLower.includes(idLower)) {
+                    matchScore += 3;
+                }
+                
+                // Check associated label
+                let labelText = '';
+                if (input.id) {
+                    const labelEl = document.querySelector(`label[for="${input.id}"]`);
+                    if (labelEl) labelText = labelEl.innerText.trim();
+                }
+                if (!labelText && input.closest('label')) {
+                    labelText = input.closest('label').innerText.trim();
+                }
+                
+                // Also check parent .form-group or .field for label
+                if (!labelText) {
+                    const formGroup = input.closest('.form-group, .field, .col');
+                    if (formGroup) {
+                        const label = formGroup.querySelector('label');
+                        if (label) labelText = label.innerText.trim();
+                    }
+                }
+                
+                if (labelText) {
+                    const labelTextLower = labelText.toLowerCase();
+                    if (labelTextLower.includes(labelLower) || labelLower.includes(labelTextLower)) {
+                        matchScore += 5; // Strong match on label
+                        console.log("[OLI Content] Label match:", labelText, "for input:", input.name || input.id);
+                    }
+                }
+            }
+
+            if (matchScore > bestInputScore) {
+                bestInputScore = matchScore;
+                bestInput = input;
+            }
+        }
+        
+        if (bestInputScore >= 3) { // At least a decent match
+            console.log("[OLI Content] Found best input match with score:", bestInputScore);
+            return { element: bestInput, type: 'input' };
+        }
+
+        // Priority 1: Look for value elements in fields (common in static forms)
         const fieldContainers = document.querySelectorAll('.field, .form-group, tr, [class*="row"], [class*="field"]');
         for (const container of fieldContainers) {
             const valueEl = container.querySelector('.value, .form-control, td:last-child, [class*="value"]');
@@ -399,12 +570,13 @@
             }
         }
         
+        console.log("[OLI Content] No matching element found");
         return null;
     }
 
     // Find text, highlight it with pulse animation, and scroll to it
-    function findAndScrollToText(searchText, status, message) {
-        console.log("[OLI Content] findAndScrollToText:", searchText);
+    function findAndScrollToText(searchText, status, message, scrollAndPulse = true) {
+        console.log("[OLI Content] findAndScrollToText:", searchText, "scrollAndPulse:", scrollAndPulse);
         const colors = STATUS_COLORS[status] || STATUS_COLORS.CRITIQUE;
         
         // First, remove any previous focus highlights
@@ -415,18 +587,21 @@
             el.style.boxShadow = '';
         });
         
-        // Try to find in existing highlights first
-        const existingHighlights = document.querySelectorAll('.oli-highlight');
-        console.log("[OLI Content] Existing highlights:", existingHighlights.length);
-        
-        const existingHighlight = Array.from(existingHighlights).find(el => {
-            return el.textContent.includes(searchText) || el.textContent.includes(extractKeyValue(searchText));
-        });
-        
-        if (existingHighlight) {
-            console.log("[OLI Content] Found in existing highlight");
-            scrollToAndPulse(existingHighlight, colors);
-            return true;
+        // Try to find in existing highlights first (only if not scrolling, meaning this is a re-check)
+        if (scrollAndPulse) {
+            const existingHighlights = document.querySelectorAll('.oli-highlight');
+            console.log("[OLI Content] Existing highlights:", existingHighlights.length);
+            
+            const existingHighlight = Array.from(existingHighlights).find(el => {
+                const elValue = el.value || el.textContent || '';
+                return elValue.includes(searchText) || elValue.includes(extractKeyValue(searchText));
+            });
+            
+            if (existingHighlight) {
+                console.log("[OLI Content] Found in existing highlight");
+                scrollToAndPulse(existingHighlight, colors);
+                return true;
+            }
         }
         
         // Extract key value from the search text
@@ -437,7 +612,7 @@
         const bestMatch = findBestMatchElement(searchText, keyValue);
         if (bestMatch) {
             console.log("[OLI Content] Found best match:", bestMatch.type);
-            highlightExistingElement(bestMatch.element, status, message, colors);
+            highlightExistingElement(bestMatch.element, status, message, colors, scrollAndPulse);
             return true;
         }
         
@@ -550,9 +725,11 @@
     }
 
     // Highlight an existing DOM element (without wrapping in new span)
-    function highlightExistingElement(element, status, message, colors) {
+    function highlightExistingElement(element, status, message, colors, scrollAndPulse = true) {
+        console.log("[OLI Content] highlightExistingElement:", element.tagName, element.id || element.name, "scrollAndPulse:", scrollAndPulse);
+        
         // Add highlight class and styles
-        element.classList.add('oli-highlight', 'oli-focus-highlight');
+        element.classList.add('oli-highlight');
         element.dataset.oliStatus = status;
         element.dataset.oliMessage = message || 'Element flagged by OLI';
         
@@ -566,47 +743,111 @@
             outline-offset: 2px !important;
             background: ${colors.bg} !important;
             border-radius: 4px !important;
-            position: relative !important;
+            transition: all 0.2s ease;
         `;
         
-        // Add badge
-        const existingBadge = element.querySelector('.oli-badge');
-        if (!existingBadge) {
+        // Check if element is a void tag (cannot have children)
+        const isVoid = /^(IMG|INPUT|BR|HR|AREA|BASE|BASEFONT|COL|LINK|META|PARAM|SELECT|TEXTAREA)$/i.test(element.tagName);
+        
+        // Check if badge needs to be created
+        let badgeExists = false;
+        if (isVoid) {
+            // Check if we already created a badge for this element
+            const existingBadge = element.parentElement?.querySelector(`.oli-badge[data-for="${element.id || element.name}"]`);
+            badgeExists = !!existingBadge;
+        } else {
+            badgeExists = !!element.querySelector('.oli-badge');
+        }
+        
+        if (!badgeExists) {
             const badge = document.createElement('span');
             badge.className = 'oli-badge';
             badge.style.cssText = `
-                position: absolute;
-                top: -14px;
-                right: -14px;
+                position: fixed;
                 background: ${colors.border};
                 color: white;
-                font-size: 14px;
-                width: 28px;
-                height: 28px;
+                font-size: 12px;
+                width: 24px;
+                height: 24px;
                 border-radius: 50%;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 font-weight: bold;
-                box-shadow: 0 2px 8px ${colors.border}60;
-                z-index: 10001;
+                box-shadow: 0 2px 8px ${colors.border}80;
+                z-index: 999997;
+                pointer-events: none;
+                transition: all 0.2s ease;
             `;
             badge.textContent = status === 'CRITIQUE' ? '!' : status === 'AVERTISSEMENT' ? '?' : '✓';
-            element.style.position = 'relative';
-            element.appendChild(badge);
+            
+            if (isVoid) {
+                // For void elements (inputs, selects), use fixed positioning based on getBoundingClientRect
+                badge.dataset.for = element.id || element.name || '';
+                
+                // Function to update badge position
+                const updateBadgePosition = () => {
+                    const rect = element.getBoundingClientRect();
+                    if (rect && rect.width > 0 && rect.height > 0) {
+                        badge.style.top = `${rect.top - 12}px`;
+                        badge.style.left = `${rect.right - 12}px`;
+                        badge.style.display = 'flex';
+                    } else {
+                        badge.style.display = 'none'; // Hide if element not visible
+                    }
+                };
+                
+                // Initial position - wait a tick for layout
+                requestAnimationFrame(() => {
+                    const rect = element.getBoundingClientRect();
+                    console.log("[OLI] Initial badge position for", element.tagName, element.id || element.name, "rect:", rect);
+                    updateBadgePosition();
+                });
+                
+                // Update position on scroll and resize
+                const scrollHandler = () => updateBadgePosition();
+                window.addEventListener('scroll', scrollHandler, true);
+                window.addEventListener('resize', scrollHandler);
+                
+                // Store cleanup function
+                badge.dataset.cleanup = 'scroll-listener';
+                element.dataset.badgeScrollHandler = scrollHandler.toString();
+                
+                document.body.appendChild(badge);
+                element.dataset.oliBadgeCreated = 'true';
+            } else {
+                // Normal elements can use relative positioning
+                const originalPosition = window.getComputedStyle(element).position;
+                if (originalPosition === 'static') {
+                    element.style.position = 'relative';
+                }
+                badge.style.position = 'absolute';
+                badge.style.top = '-12px';
+                badge.style.right = '-12px';
+                element.appendChild(badge);
+            }
         }
         
         // Add hover events
-        element.addEventListener('mouseenter', function() {
+        const mouseEnterHandler = function() {
             showTooltip(this, this.dataset.oliMessage, this.dataset.oliStatus);
-        });
-        
-        element.addEventListener('mouseleave', function() {
+        };
+        const mouseLeaveHandler = function() {
             hideTooltip();
-        });
+        };
+        
+        element.addEventListener('mouseenter', mouseEnterHandler);
+        element.addEventListener('mouseleave', mouseLeaveHandler);
+        
+        // Store handlers for cleanup
+        element.dataset.oliMouseEnter = 'attached';
+        element.dataset.oliMouseLeave = 'attached';
         
         highlightedElements.push(element);
-        scrollToAndPulse(element, colors);
+        
+        if (scrollAndPulse) {
+            scrollToAndPulse(element, colors);
+        }
     }
 
     // Scroll to element and add pulse animation
@@ -669,10 +910,25 @@
 
     // Listen for messages from the side panel
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-        console.log("📨 OLI received message:", request.action);
+        console.log("📨 OLI received message:", request.action, request.data);
         
         if (request.action === "SCAN_PAGE") {
-            const text = document.body.innerText;
+            // Get base text
+            let text = document.body.innerText;
+            
+            // Extract form field values and append them
+            const formData = extractFormData();
+            console.log("[OLI] SCAN_PAGE - form data extracted:", formData);
+            
+            if (formData.length > 0) {
+                text += "\n\n=== FORM DATA ===\n";
+                formData.forEach(field => {
+                    text += `Field [${field.label}]: ${field.value}\n`;
+                });
+            }
+            
+            console.log("[OLI] SCAN_PAGE - text length:", text.length, "form fields:", formData.length);
+            console.log("[OLI] SCAN_PAGE - final text excerpt:", text.substring(text.length - 500));
             sendResponse({ text: text });
         } 
         else if (request.action === "HIGHLIGHT_RISK") {
@@ -689,8 +945,12 @@
             const { highlights, overallStatus } = request.data;
             
             if (highlights && highlights.length > 0) {
+                console.log("[OLI] HIGHLIGHT_RISKS - processing", highlights.length, "highlights");
                 highlights.forEach(h => {
-                    highlightText(h.text, h.status, `Risk element detected`);
+                    // Use findAndScrollToText which is smarter and can handle inputs
+                    // Pass false for scrollAndPulse since we'll scroll to them individually via SCROLL_TO_TEXT
+                    const found = findAndScrollToText(h.text, h.status, `Risk element detected`, false);
+                    console.log("[OLI] Highlight attempt for:", h.text, "found:", found);
                 });
             }
             

@@ -76,9 +76,17 @@ Third: Privacy-first design with Microsoft Presidio. All personal data, includin
 
 Fourth: Universal compatibility. Our DOM injection technology works on any web-based system. No APIs required. No integrations needed. If it runs in a browser, OLI can analyze it.
 
+### CITIZEN-FACING & ACCESSIBILITY (4:00 - 4:30)
+
+But we didn't stop at government employees. We've expanded OLI to serve citizens directly.
+
+Using the same core technology, citizens can now use OLI to check their own applications before submission. By catching errors at the source—like insufficient funds or missing documents—we reduce the rejection rate and the workload on agents.
+
+We've also built OLI with accessibility at its core. With high-contrast modes, senior-friendly text sizing, and dark mode support, we ensure that legal intelligence is accessible to everyone, regardless of ability or environment.
+
 ---
 
-### G7 IMPACT AND VISION (4:00 - 4:30)
+### G7 IMPACT AND VISION (4:30 - 5:00)
 
 OLI is built specifically for the G7 Grand Challenge criteria.
 

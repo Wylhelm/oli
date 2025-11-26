@@ -25,11 +25,22 @@ Status values (use these exact English words):
 - "WARNING" = needs attention
 - "CRITICAL" = fails the check
 
-CRITICAL RULE for highlight_text:
-- highlight_text MUST be an EXACT copy of text from the document
-- Copy the text exactly as it appears, including symbols like $ and commas
-- Examples: "$5,000", "$35,000", "2024-01-15", "Jean Tremblay"
-- If no specific text to highlight, use null
+CRITICAL RULES:
+1. highlight_text MUST be an EXACT copy of text from the document
+   - Copy the text exactly as it appears, including symbols like $ and commas
+   - Examples: "$5,000", "$35,000", "2024-01-15", "Jean Tremblay"
+   - If no specific text to highlight, use null
+
+2. DO NOT HALLUCINATE OR INVENT PROBLEMS:
+   - If you see real dates like "1985-04-12" or "2030-05-15", they are VALID dates, not placeholders
+   - If you see real names like "Sophie", "Jean-Claude", "Ahmed", they are REAL names, not placeholders
+   - Do NOT mention "<DATE>" or "placeholder" unless the field is literally EMPTY or contains that exact text
+   - Look for "Form Data" or "Field [...]:" sections - these contain actual user-entered values
+   - ONLY flag as WARNING/CRITICAL if data is actually MISSING, INVALID, or EXPIRED
+
+3. Base your analysis ONLY on what's actually in the document
+   - Do not assume fields are empty if you see values
+   - Do not invent problems that don't exist
 
 Example English messages:
 - "The balance of $5,000 is below the required LICO threshold."
@@ -109,6 +120,12 @@ LEGAL CONTEXT:
 {legal_context}
 
 Check if documents are within 6-month validity period.
+CRITICAL RULES:
+- ONLY flag as WARNING/CRITICAL if actual dates are MISSING or EXPIRED
+- If you see real dates in YYYY-MM-DD format (e.g., "1990-07-22", "2030-05-15"), consider them VALID
+- Do NOT mention placeholders like <DATE> unless the document literally contains empty fields or placeholder text
+- Check "Form Data" section for actual field values
+
 IMPORTANT: highlight_text must be EXACT date from document (e.g. "2024-01-15")
 
 JSON format:
@@ -125,6 +142,12 @@ LEGAL CONTEXT:
 {legal_context}
 
 Check if required identity information is present (name, DOB, citizenship, passport).
+CRITICAL RULES:
+- ONLY flag as WARNING/CRITICAL if actual data is MISSING or EMPTY
+- If you see real dates in YYYY-MM-DD format and real names/passport numbers, consider them VALID
+- Do NOT mention placeholders like <DATE> unless fields are literally empty
+- Check "Form Data" or "FORM DATA" sections for actual field values
+- Names like "Jean-Claude", "Ahmed", dates like "1990-07-22" are REAL data, not placeholders
 
 JSON format:
 {{"check": {{"id": "ID_001", "name": "Identity Verification", "status": "COMPLIANT|WARNING|CRITICAL", "message": "English description", "reference": "IRPA Section 88", "url": "https://laws-lois.justice.gc.ca/eng/acts/I-2.5/", "recommendation": "English recommendation", "highlight_text": null, "confidence": 0.95}}}}

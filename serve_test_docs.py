@@ -49,7 +49,10 @@ def main():
     
     handler = partial(CORSHTTPRequestHandler, directory=DIRECTORY)
     
-    with socketserver.TCPServer(("", PORT), handler) as httpd:
+    class ThreadingHTTPServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
+        daemon_threads = True
+
+    with ThreadingHTTPServer(("", PORT), handler) as httpd:
         print(f"")
         print(f"  OLI Test Documents Server")
         print(f"  =========================")

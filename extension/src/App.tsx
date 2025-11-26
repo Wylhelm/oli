@@ -694,13 +694,62 @@ function App() {
         // Regular page - clear PDF state
         setCurrentPdfUrl(null);
         
-        // Extract page text
+        // Extract page text and form values
         const injectionResults = await chrome.scripting.executeScript({
           target: { tabId: tab.id },
-          func: () => document.body.innerText,
+          func: () => {
+            // Get visible text
+            const visibleText = document.body.innerText;
+            
+            // Get form input values (which are often not in innerText)
+            const inputs = document.querySelectorAll('input, select, textarea');
+            const formValues = Array.from(inputs).map(input => {
+              const el = input as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+              // Skip non-visible or utility inputs
+              if (el.type === 'hidden' || el.type === 'submit' || el.type === 'button' || el.type === 'image') return '';
+              if (!el.value) return '';
+
+              // Try to find a label
+              let label = '';
+              // 1. labeled-by
+              if (el.getAttribute('aria-labelledby')) {
+                 const id = el.getAttribute('aria-labelledby');
+                 if (id) label = document.getElementById(id)?.innerText || '';
+              }
+              // 2. label for
+              if (!label && el.id) {
+                const labelEl = document.querySelector(`label[for="${el.id}"]`);
+                if (labelEl) label = (labelEl as HTMLElement).innerText;
+              }
+              // 3. parent label
+              if (!label) {
+                const parentLabel = el.closest('label');
+                if (parentLabel) {
+                    // Clone and remove input to get just label text
+                    const clone = parentLabel.cloneNode(true) as HTMLElement;
+                    const cloneInput = clone.querySelector('input, select, textarea');
+                    if (cloneInput) cloneInput.remove();
+                    label = clone.innerText;
+                }
+              }
+              // 4. name/placeholder
+              if (!label) {
+                const placeholder = 'placeholder' in el ? (el as any).placeholder : '';
+                label = el.name || placeholder || '';
+              }
+
+              return `Field [${label.trim()}]: ${el.value}`;
+            }).filter(s => s).join('\n');
+
+            return visibleText + '\n\n--- Form Data (User Inputs) ---\n' + formValues;
+          },
         });
         pageText = injectionResults[0].result || '';
       }
+
+      // Debug: Log the extracted text
+      console.log("[OLI] Page text extracted, length:", pageText.length);
+      console.log("[OLI] Last 800 chars (form data section):", pageText.substring(Math.max(0, pageText.length - 800)));
 
       // 3. Send to Backend (LLM or Fast mode)
       const endpoint = analysisMode === 'llm' 
