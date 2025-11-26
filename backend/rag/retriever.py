@@ -223,20 +223,43 @@ class ContextualRetriever:
         return "\n\n---\n\n".join(context_parts)
     
     def _extract_sources(self, docs: list[dict]) -> list[dict]:
-        """Extract unique source citations from documents"""
+        """Extract unique source citations from documents with summaries"""
         sources = {}
         
         for doc in docs:
             metadata = doc.get("metadata", {})
             url = metadata.get("html_url", "")
+            text = doc.get("text", "")
             
             if url and url not in sources:
+                # Create a summary from the text (first 300 chars)
+                summary = text[:300].strip()
+                if len(text) > 300:
+                    # Try to cut at a sentence or word boundary
+                    last_period = summary.rfind('.')
+                    last_space = summary.rfind(' ')
+                    cut_point = max(last_period, last_space)
+                    if cut_point > 100:
+                        summary = summary[:cut_point + 1]
+                    summary += "..."
+                
                 sources[url] = {
                     "title": metadata.get("doc_title", ""),
                     "url": url,
                     "doc_type": metadata.get("doc_type", ""),
-                    "section": metadata.get("section", "")
+                    "section": metadata.get("section", ""),
+                    "summary": summary,
+                    "relevance": doc.get("score", 0)
                 }
+            elif url in sources:
+                # Append additional text if same source found multiple times
+                existing = sources[url]
+                if existing.get("summary", "") and text:
+                    # Only add if significantly different
+                    if text[:50] not in existing["summary"]:
+                        additional = text[:150].strip()
+                        if len(additional) > 50:
+                            existing["summary"] += f" | {additional}..."
         
         return list(sources.values())
     

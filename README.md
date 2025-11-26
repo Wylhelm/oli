@@ -42,10 +42,12 @@ OLI est une extension Chrome innovante qui agit comme une "surcouche de réalit�
 - Indicateur flottant de statut global
 - Animations fluides et effets visuels
 
-### 🔒 Sécurité & Confidentialité
-- Anonymisation client-side des données personnelles
-- Pattern matching pour : NAS, passeports, emails, téléphones, codes postaux
-- Aucune donnée personnelle envoyée au backend
+### 🔒 Sécurité & Confidentialité (Microsoft Presidio)
+- **Anonymisation avancée** avec Microsoft Presidio (NER + regex)
+- **PII canadien** : NAS, UCI, codes postaux, passeports
+- **PII standard** : Noms, emails, téléphones, cartes de crédit
+- Détection automatique de la langue (français/anglais)
+- Aucune donnée personnelle envoyée au LLM
 
 ## Architecture
 
@@ -96,7 +98,7 @@ OLI/
 - Ollama (pour LLM local)
 - Conda (recommandé)
 
-### 1. Backend (API + RAG + LLM)
+### 1. Backend (API + RAG + LLM + Presidio)
 
 ```bash
 cd backend
@@ -108,11 +110,18 @@ conda activate OLI
 # Installer les dépendances
 pip install -r requirements.txt
 
+# Installer les modèles spaCy pour Presidio (anonymisation NER)
+python -m spacy download en_core_web_sm
+python -m spacy download fr_core_news_sm
+
 # Télécharger les lois d'immigration (première fois uniquement)
 python rag/downloader.py
 
 # Ingérer dans la base vectorielle (première fois uniquement)
 python rag/vector_store.py
+
+# Tester l'anonymisation Presidio (optionnel)
+python test_presidio.py
 
 # Lancer le serveur
 uvicorn main:app --reload --port 8001
@@ -211,6 +220,14 @@ Le système détectera automatiquement avec justification légale :
 |----------|---------|-------------|
 | `/llm/status` | GET | État du LLM et modèle actif |
 
+### Anonymisation (Microsoft Presidio)
+
+| Endpoint | Méthode | Description |
+|----------|---------|-------------|
+| `/anonymize` | POST | Anonymise le texte (PII → tokens) |
+| `/anonymize/detect` | POST | Détecte les PII sans anonymiser |
+| `/anonymize/status` | GET | État de Presidio (NER ou fallback) |
+
 ### Exemple de requête LLM
 
 ```bash
@@ -246,6 +263,7 @@ Réponse :
 - **Backend** : Python 3.11+, FastAPI, Pydantic
 - **RAG** : ChromaDB, Sentence-Transformers (paraphrase-multilingual-MiniLM-L12-v2)
 - **LLM** : Ollama (configurable)
+- **Anonymisation** : Microsoft Presidio + spaCy NER (fr/en)
 - **PDF** : PDF.js (pdfjs-dist)
 - **Extension** : Manifest V3, Chrome Side Panel API
 - **Data Source** : Justice.gc.ca XML API (76 lois d'immigration)

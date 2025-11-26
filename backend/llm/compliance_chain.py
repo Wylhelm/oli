@@ -1,11 +1,11 @@
 """
 OLI Compliance Chain
-Full pipeline: Anonymization -> RAG -> LLM -> Parsing
+Full pipeline: Anonymization (Presidio) -> RAG -> LLM -> Parsing
 """
 
 import json
 import re
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 from dataclasses import dataclass, field
 
 from .ollama_client import OllamaClient, get_ollama_client
@@ -20,6 +20,10 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from rag.retriever import ContextualRetriever
+
+# Type hint for Presidio anonymizer
+if TYPE_CHECKING:
+    from anonymization.presidio_anonymizer import PresidioAnonymizer
 
 
 @dataclass
@@ -54,7 +58,7 @@ class ComplianceChain:
     Full compliance analysis pipeline
     
     Steps:
-    1. Anonymize document text (PII removal)
+    1. Anonymize document text (Microsoft Presidio)
     2. Retrieve relevant legal context (RAG)
     3. Generate analysis with LLM
     4. Parse and structure response
@@ -64,11 +68,36 @@ class ComplianceChain:
         self,
         retriever: ContextualRetriever,
         llm_client: Optional[OllamaClient] = None,
-        anonymizer = None
+        anonymizer: Optional["PresidioAnonymizer"] = None
     ):
         self.retriever = retriever
         self.llm = llm_client or get_ollama_client()
         self.anonymizer = anonymizer
+        
+        # Log anonymizer status
+        if self.anonymizer:
+            status = "Presidio (NER)" if self.anonymizer.is_available() else "Presidio (regex fallback)"
+            print(f"[OLI ComplianceChain] Using {status} for anonymization")
+        else:
+            print("[OLI ComplianceChain] Using basic regex anonymization")
+    
+    def _anonymize_document(self, document_text: str) -> str:
+        """
+        Anonymize document using Presidio or fallback
+        
+        Args:
+            document_text: Text to anonymize
+            
+        Returns:
+            Anonymized text
+        """
+        if self.anonymizer:
+            try:
+                return self.anonymizer.anonymize(document_text)
+            except Exception as e:
+                print(f"[OLI] Presidio anonymization failed: {e}, using fallback")
+                return self._basic_anonymize(document_text)
+        return self._basic_anonymize(document_text)
     
     def analyze(
         self,
@@ -85,11 +114,8 @@ class ComplianceChain:
         Returns:
             ComplianceAnalysis with all checks and recommendations
         """
-        # 1. Anonymize (if anonymizer available)
-        if self.anonymizer:
-            anonymized = self.anonymizer.anonymize(document_text)
-        else:
-            anonymized = self._basic_anonymize(document_text)
+        # 1. Anonymize with Presidio (or fallback)
+        anonymized = self._anonymize_document(document_text)
         
         # 2. Get comprehensive RAG context
         rag_results = self.retriever.retrieve_comprehensive(anonymized)
@@ -144,11 +170,8 @@ class ComplianceChain:
         """
         Run full compliance analysis (asynchronous)
         """
-        # 1. Anonymize
-        if self.anonymizer:
-            anonymized = self.anonymizer.anonymize(document_text)
-        else:
-            anonymized = self._basic_anonymize(document_text)
+        # 1. Anonymize with Presidio (or fallback)
+        anonymized = self._anonymize_document(document_text)
         
         # 2. Get RAG context
         rag_results = self.retriever.retrieve_comprehensive(anonymized)

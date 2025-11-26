@@ -1,5 +1,5 @@
 # OLI Backend Dependencies
-# Phase 2 - RAG + LLM Integration
+# Phase 2 - RAG + LLM + Presidio Anonymization
 
 # API Framework
 fastapi>=0.109.0
@@ -23,9 +23,34 @@ sentence-transformers>=2.2.0
 langchain>=0.1.0
 openai>=1.10.0
 
-# Anonymization (Phase 2.3)
+# ==============================================================================
+# Anonymization - Microsoft Presidio (Phase 2.3)
+# ==============================================================================
 presidio-analyzer>=2.2.0
 presidio-anonymizer>=2.2.0
+
+# spaCy NLP (required for Presidio NER)
+spacy>=3.7.0
+
+# ==============================================================================
+# spaCy Models - Install AFTER pip install requirements.txt
+# ==============================================================================
+# Run these commands to install language models:
+#
+# English (choose one based on your needs):
+#   python -m spacy download en_core_web_sm   # Small (12MB) - fastest
+#   python -m spacy download en_core_web_md   # Medium (40MB) - balanced
+#   python -m spacy download en_core_web_lg   # Large (560MB) - best accuracy
+#
+# French (choose one):
+#   python -m spacy download fr_core_news_sm  # Small (15MB) - fastest
+#   python -m spacy download fr_core_news_md  # Medium (42MB) - balanced
+#   python -m spacy download fr_core_news_lg  # Large (545MB) - best accuracy
+#
+# Minimum recommended for OLI:
+#   python -m spacy download en_core_web_sm
+#   python -m spacy download fr_core_news_sm
+# ==============================================================================
 
 # XML Parsing
 lxml>=5.0.0

@@ -165,15 +165,67 @@ POST /analyze/llm
 
 ---
 
-## Phase 2.3 — Microsoft Presidio
+## Phase 2.3 — Microsoft Presidio (Anonymization)
 
-### Status: ⬜ NOT STARTED
+### Status: ✅ COMPLETED
+
+### Tasks
+| Task | Status | Notes |
+|------|--------|-------|
+| Create anonymization module structure | ✅ Done | `backend/anonymization/__init__.py`, `presidio_anonymizer.py` |
+| Implement PresidioAnonymizer class | ✅ Done | Full Presidio integration with fallback |
+| Add Canadian-specific recognizers | ✅ Done | SIN, UCI, Postal Code, Passport |
+| Integrate with main.py | ✅ Done | Global instance, `/anonymize` endpoints |
+| Integrate with ComplianceChain | ✅ Done | Automatic anonymization before LLM |
+| Update requirements.txt | ✅ Done | Added spaCy installation instructions |
+| Create test suite | ✅ Done | `backend/test_presidio.py` |
+
+### Canadian PII Recognizers
+| Entity Type | Pattern | Example | Replacement Token |
+|-------------|---------|---------|-------------------|
+| CA_SIN | `XXX-XXX-XXX` | 123-456-789 | `<NAS>` |
+| CA_UCI | `UCI-XXXXXXXX` | UCI-12345678 | `<UCI>` |
+| CA_POSTAL_CODE | `A1A 1A1` | H2X 1Y4 | `<CODE_POSTAL>` |
+| CA_PASSPORT | `AAXXXXXX` | AB123456 | `<PASSEPORT>` |
+
+### Standard PII Support
+| Entity Type | Example | Replacement Token |
+|-------------|---------|-------------------|
+| PERSON | Sophie Martin | `<PERSONNE>` |
+| EMAIL_ADDRESS | email@domain.com | `<COURRIEL>` |
+| PHONE_NUMBER | +1 (514) 555-1234 | `<TELEPHONE>` |
+| CREDIT_CARD | 4111-1111-1111-1111 | `<CARTE_CREDIT>` |
+
+### API Endpoints Added
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/anonymize` | POST | Anonymize text with Presidio |
+| `/anonymize/detect` | POST | Detect PII without anonymizing |
+| `/anonymize/status` | GET | Check Presidio status |
+
+### Files Created
+- [x] `backend/anonymization/__init__.py`
+- [x] `backend/anonymization/presidio_anonymizer.py`
+- [x] `backend/test_presidio.py`
+
+### Test Command
+```bash
+cd backend
+python test_presidio.py
+```
+
+### spaCy Model Installation
+```bash
+# Required for full NER support
+python -m spacy download en_core_web_sm
+python -m spacy download fr_core_news_sm
+```
 
 ---
 
 ## Phase 2.4 — PDF Extraction
 
-### Status: ⬜ NOT STARTED
+### Status: ✅ COMPLETED (in Phase 3)
 
 ---
 
@@ -184,6 +236,18 @@ POST /analyze/llm
 ---
 
 ## 📝 Daily Log
+
+### November 26, 2025
+**Phase 2.3 - Microsoft Presidio**
+- ✅ Created `backend/anonymization/` module
+- ✅ Implemented `PresidioAnonymizer` with Canadian recognizers
+- ✅ Added custom recognizers: CA_SIN, CA_UCI, CA_POSTAL_CODE, CA_PASSPORT
+- ✅ Integrated Presidio into FastAPI startup lifecycle
+- ✅ Added `/anonymize`, `/anonymize/detect`, `/anonymize/status` endpoints
+- ✅ Updated `ComplianceChain` to use Presidio anonymizer
+- ✅ Created comprehensive test suite `test_presidio.py`
+- ✅ Added fallback regex anonymization when spaCy unavailable
+- ✅ Bilingual support (French/English) with auto-detection
 
 ### November 25, 2025
 **Phase 2.1 - RAG System**

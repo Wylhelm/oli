@@ -14,17 +14,34 @@ from rag.retriever import ContextualRetriever
 from llm.ollama_client import OllamaClient
 from llm.compliance_chain import ComplianceChain
 
+# Anonymization imports (Microsoft Presidio)
+from anonymization.presidio_anonymizer import PresidioAnonymizer, get_anonymizer
+
 # Global instances (initialized on startup)
 vector_store: Optional[LegalVectorStore] = None
 retriever: Optional[ContextualRetriever] = None
 llm_client: Optional[OllamaClient] = None
 compliance_chain: Optional[ComplianceChain] = None
+presidio_anonymizer: Optional[PresidioAnonymizer] = None
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Initialize RAG and LLM systems on startup"""
-    global vector_store, retriever, llm_client, compliance_chain
+    """Initialize RAG, LLM, and Presidio systems on startup"""
+    global vector_store, retriever, llm_client, compliance_chain, presidio_anonymizer
+    
+    # Initialize Presidio Anonymizer
+    print("[OLI] Initializing Microsoft Presidio Anonymizer...")
+    try:
+        # Force new instance to pick up latest configuration
+        presidio_anonymizer = get_anonymizer(languages=["en", "fr"], force_new=True)
+        if presidio_anonymizer.is_available():
+            print(f"[OLI] Presidio Anonymizer ready (with spaCy NER) - Languages: {presidio_anonymizer.languages}")
+        else:
+            print("[OLI] Presidio running in fallback mode (regex-based)")
+    except Exception as e:
+        print(f"[OLI] Presidio initialization failed: {e}")
+        presidio_anonymizer = None
     
     # Initialize RAG
     print("[OLI] Initializing RAG System...")
@@ -45,10 +62,14 @@ async def lifespan(app: FastAPI):
         llm_client = OllamaClient(model=ollama_model)
         if llm_client.is_available():
             print(f"[OLI] LLM model found: {llm_client.model}")
-            # Create compliance chain (using chat API for cloud models)
+            # Create compliance chain with Presidio anonymizer
             if retriever:
-                compliance_chain = ComplianceChain(retriever=retriever, llm_client=llm_client)
-                print("[OLI] Compliance Chain ready (RAG + LLM)")
+                compliance_chain = ComplianceChain(
+                    retriever=retriever, 
+                    llm_client=llm_client,
+                    anonymizer=presidio_anonymizer
+                )
+                print("[OLI] Compliance Chain ready (RAG + LLM + Presidio)")
         else:
             available = llm_client.list_models()
             print(f"[OLI] LLM model not found. Available: {available}")
@@ -152,37 +173,41 @@ LEGAL_KNOWLEDGE = {
 
 def anonymize_text(text: str) -> str:
     """
-    Anonymize PII using Microsoft Presidio-style patterns
+    Anonymize PII using Microsoft Presidio
+    Falls back to regex if Presidio is unavailable
     """
+    global presidio_anonymizer
+    
+    # Use Presidio if available
+    if presidio_anonymizer:
+        return presidio_anonymizer.anonymize(text)
+    
+    # Fallback to basic regex anonymization
     anonymized = text
     
     # Person names (common pattern after indicators)
     name_patterns = [
-        (r"(Nom complet\s*:\s*)([A-Z][a-zéèêëàâ]+\s+[A-Z][a-zéèêëàâ]+)", r"\1<PERSON>"),
-        (r"(Demandeur\s*:\s*)([A-Z][a-zéèêëàâ]+\s+[A-Z][a-zéèêëàâ]+)", r"\1<PERSON>"),
-        (r"(Name\s*:\s*)([A-Z][a-z]+\s+[A-Z][a-z]+)", r"\1<PERSON>"),
+        (r"(Nom complet\s*:\s*)([A-Z][a-zéèêëàâ]+\s+[A-Z][a-zéèêëàâ]+)", r"\1<PERSONNE>"),
+        (r"(Demandeur\s*:\s*)([A-Z][a-zéèêëàâ]+\s+[A-Z][a-zéèêëàâ]+)", r"\1<PERSONNE>"),
+        (r"(Name\s*:\s*)([A-Z][a-z]+\s+[A-Z][a-z]+)", r"\1<PERSONNE>"),
     ]
     for pattern, replacement in name_patterns:
         anonymized = re.sub(pattern, replacement, anonymized)
     
-    # Dates (YYYY-MM-DD or DD/MM/YYYY)
-    anonymized = re.sub(r"\d{4}-\d{2}-\d{2}", "<DATE_TIME>", anonymized)
-    anonymized = re.sub(r"\d{2}/\d{2}/\d{4}", "<DATE_TIME>", anonymized)
-    
     # UCI numbers
-    anonymized = re.sub(r"UCI[-\s]?\d{8,10}", "<UCI_ID>", anonymized, flags=re.IGNORECASE)
+    anonymized = re.sub(r"UCI[-\s]?\d{8,10}", "<UCI>", anonymized, flags=re.IGNORECASE)
     
     # SIN numbers
-    anonymized = re.sub(r"\b\d{3}[-\s]?\d{3}[-\s]?\d{3}\b", "<SIN>", anonymized)
+    anonymized = re.sub(r"\b\d{3}[-\s]?\d{3}[-\s]?\d{3}\b", "<NAS>", anonymized)
     
     # Email
-    anonymized = re.sub(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}", "<EMAIL>", anonymized)
+    anonymized = re.sub(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}", "<COURRIEL>", anonymized)
     
     # Phone
-    anonymized = re.sub(r"\b(\+1[-\s]?)?\(?\d{3}\)?[-\s]?\d{3}[-\s]?\d{4}\b", "<PHONE>", anonymized)
+    anonymized = re.sub(r"\b(\+1[-\s]?)?\(?\d{3}\)?[-\s]?\d{3}[-\s]?\d{4}\b", "<TELEPHONE>", anonymized)
     
     # Postal codes
-    anonymized = re.sub(r"\b[A-Z]\d[A-Z][-\s]?\d[A-Z]\d\b", "<POSTAL_CODE>", anonymized, flags=re.IGNORECASE)
+    anonymized = re.sub(r"\b[A-Z]\d[A-Z][-\s]?\d[A-Z]\d\b", "<CODE_POSTAL>", anonymized, flags=re.IGNORECASE)
     
     return anonymized
 
@@ -504,12 +529,18 @@ async def health_check():
         stats = vector_store.get_stats()
         rag_docs = sum(s["count"] for s in stats.values())
     
+    # Check Presidio status
+    presidio_status = "unavailable"
+    if presidio_anonymizer:
+        presidio_status = "ready" if presidio_anonymizer.is_available() else "fallback"
+    
     return {
         "status": "healthy", 
         "service": "OLI Backend",
-        "version": "2.0.0",
+        "version": "2.1.0",
         "rag_status": rag_status,
-        "rag_documents": rag_docs
+        "rag_documents": rag_docs,
+        "presidio_status": presidio_status
     }
 
 
@@ -811,6 +842,109 @@ async def get_llm_status():
             "status": "error",
             "message": str(e)
         }
+
+
+# ============================================================================
+# Anonymization Endpoints (Microsoft Presidio)
+# ============================================================================
+
+class AnonymizeRequest(BaseModel):
+    text: str
+    language: Optional[str] = None  # Auto-detect if not specified
+    return_entities: bool = False
+
+
+class AnonymizeResponse(BaseModel):
+    anonymized_text: str
+    entities_detected: Optional[List[dict]] = None
+    entities_by_type: Optional[dict] = None
+    total_entities: int = 0
+    presidio_available: bool = False
+
+
+@app.post("/anonymize", response_model=AnonymizeResponse)
+async def anonymize_endpoint(request: AnonymizeRequest):
+    """
+    Anonymize text using Microsoft Presidio
+    
+    Replaces PII with tokens:
+    - Canadian: SIN (<NAS>), UCI (<UCI>), Postal Code (<CODE_POSTAL>)
+    - Standard: Names (<PERSONNE>), Emails (<COURRIEL>), Phones (<TELEPHONE>)
+    
+    Supports French and English text with automatic language detection.
+    """
+    global presidio_anonymizer
+    
+    if not presidio_anonymizer:
+        # Fallback to basic anonymization
+        return AnonymizeResponse(
+            anonymized_text=anonymize_text(request.text),
+            total_entities=0,
+            presidio_available=False
+        )
+    
+    if request.return_entities:
+        result = presidio_anonymizer.anonymize_with_details(request.text, request.language)
+        return AnonymizeResponse(
+            anonymized_text=result.anonymized_text,
+            entities_detected=[e.to_dict() for e in result.entities_detected],
+            entities_by_type=result.entities_by_type,
+            total_entities=len(result.entities_detected),
+            presidio_available=presidio_anonymizer.is_available()
+        )
+    else:
+        anonymized = presidio_anonymizer.anonymize(request.text, request.language)
+        return AnonymizeResponse(
+            anonymized_text=anonymized,
+            presidio_available=presidio_anonymizer.is_available()
+        )
+
+
+@app.post("/anonymize/detect")
+async def detect_entities(request: AnonymizeRequest):
+    """
+    Detect PII entities without anonymizing
+    
+    Returns list of detected entities with their types, positions, and confidence scores.
+    Useful for previewing what would be anonymized.
+    """
+    global presidio_anonymizer
+    
+    if not presidio_anonymizer:
+        return {
+            "error": "Presidio not available",
+            "entities": []
+        }
+    
+    entities = presidio_anonymizer.detect_entities(request.text, request.language)
+    
+    return {
+        "text_length": len(request.text),
+        "entities": [e.to_dict() for e in entities],
+        "total_entities": len(entities),
+        "supported_entity_types": presidio_anonymizer.get_supported_entities()
+    }
+
+
+@app.get("/anonymize/status")
+async def get_anonymizer_status():
+    """Get status of the Presidio anonymizer"""
+    global presidio_anonymizer
+    
+    if not presidio_anonymizer:
+        return {
+            "status": "unavailable",
+            "message": "Presidio anonymizer not initialized",
+            "mode": "fallback_regex"
+        }
+    
+    return {
+        "status": "ready" if presidio_anonymizer.is_available() else "fallback",
+        "mode": "presidio" if presidio_anonymizer.is_available() else "fallback_regex",
+        "supported_languages": presidio_anonymizer.languages,
+        "supported_entities": presidio_anonymizer.get_supported_entities(),
+        "canadian_entities": ["CA_SIN", "CA_POSTAL_CODE", "CA_UCI", "CA_PASSPORT"]
+    }
 
 
 if __name__ == "__main__":
