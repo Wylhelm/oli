@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -374,19 +374,19 @@
         <header>
             <div class="logo">
                 <div class="logo-icon">🛡️</div>
-                <h1>OLI - Zone de Test</h1>
+                <h1>OLI - Test Zone</h1>
             </div>
-            <p class="subtitle">Testez l'analyse de conformité avec le portail demo et les documents PDF</p>
+            <p class="subtitle">Test compliance analysis with the demo portal and PDF documents</p>
         </header>
         
         <div class="instructions">
-            <h2>📋 Comment tester OLI</h2>
+            <h2>📋 How to Test OLI</h2>
             <ol>
-                <li><strong>Portail Legacy (recommandé)</strong> : Cliquez sur le bouton rouge ci-dessous pour accéder au simulateur du portail IRCC avec un dossier d'immigration pré-rempli (Sophie Martin, UCI-99887766)</li>
-                <li><strong>Activez OLI</strong> : Cliquez sur l'icône 🛡️ dans la barre d'extensions Chrome</li>
-                <li><strong>Analysez</strong> : Cliquez sur "Analyser avec IA" pour lancer l'analyse du dossier</li>
-                <li><strong>Documents PDF</strong> : Vous pouvez aussi tester avec les PDFs ci-dessous (relevés bancaires, formulaires)</li>
-                <li><strong>Modes</strong> : Testez les deux modes - <code>Rapide</code> (règles) et <code>IA</code> (LLM + RAG)</li>
+                <li><strong>Legacy Portal (recommended)</strong>: Click the red button below to access the IRCC portal simulator with a pre-filled immigration case (Sophie Martin, UCI-99887766)</li>
+                <li><strong>Activate OLI</strong>: Click the 🛡️ icon in the Chrome extensions bar</li>
+                <li><strong>Analyze</strong>: Click "Analyze with AI" to start case analysis</li>
+                <li><strong>PDF Documents</strong>: You can also test with the PDFs below (bank statements, forms)</li>
+                <li><strong>Modes</strong>: Test both modes - <code>Fast</code> (rules) and <code>AI</code> (LLM + RAG)</li>
             </ol>
         </div>
         
@@ -395,9 +395,9 @@
             <div class="portal-card">
                 <div class="portal-icon">🍁</div>
                 <div class="portal-info">
-                    <h3>▶ Accéder au Portail Demo IRCC</h3>
-                    <p>Système de Traitement des Demandes v4.2.1 — <strong>4 cas de test disponibles</strong></p>
-                    <p class="portal-desc">🔴 Sophie Martin (critique) | 🟢 Jean-Claude Tremblay (conforme) | 🟡 Marie Dubois (avertissement) | 🔴 Ahmed Hassan (critique)</p>
+                    <h3>▶ Access IRCC Demo Portal</h3>
+                    <p>Application Processing System v4.2.1 — <strong>4 test cases available</strong></p>
+                    <p class="portal-desc">🔴 Sophie Martin (critical) | 🟢 Jean-Claude Tremblay (compliant) | 🟡 Marie Dubois (warning) | 🔴 Ahmed Hassan (critical)</p>
                 </div>
                 <div class="portal-arrow">→</div>
             </div>
@@ -408,22 +408,22 @@
             <a href="legacy-portal.html?case=sophie" class="case-link critical">
                 <span class="case-badge">🔴</span>
                 <span>Sophie Martin</span>
-                <span class="case-issue">Fonds insuffisants + Doc périmé</span>
+                <span class="case-issue">Insufficient funds + Expired doc</span>
             </a>
             <a href="legacy-portal.html?case=jean" class="case-link compliant">
                 <span class="case-badge">🟢</span>
                 <span>Jean-Claude Tremblay</span>
-                <span class="case-issue">Tout conforme</span>
+                <span class="case-issue">All compliant</span>
             </a>
             <a href="legacy-portal.html?case=marie" class="case-link warning">
                 <span class="case-badge">🟡</span>
                 <span>Marie Dubois</span>
-                <span class="case-issue">Fonds limite (2 pers.)</span>
+                <span class="case-issue">Funds at limit (2 pers.)</span>
             </a>
             <a href="legacy-portal.html?case=ahmed" class="case-link critical">
                 <span class="case-badge">🔴</span>
                 <span>Ahmed Hassan</span>
-                <span class="case-issue">Multiples problèmes</span>
+                <span class="case-issue">Multiple issues</span>
             </a>
         </div>
         
@@ -432,14 +432,14 @@
             <div class="doc-card critical">
                 <div class="doc-header">
                     <div>
-                        <div class="doc-title">📄 Relevé Bancaire (Non-conforme)</div>
-                        <div class="doc-type">Banque Nationale de Paris - Certifié</div>
+                        <div class="doc-title">📄 Bank Statement (Non-compliant)</div>
+                        <div class="doc-type">Banque Nationale de Paris - Certified</div>
                     </div>
-                    <span class="status-badge critical">Critique</span>
+                    <span class="status-badge critical">Critical</span>
                 </div>
                 <div class="doc-details">
                     <div class="detail-item">
-                        <span class="detail-label">Demandeur:</span>
+                        <span class="detail-label">Applicant:</span>
                         <span class="detail-value">Sophie Marie Martin</span>
                     </div>
                     <div class="detail-item">
@@ -447,24 +447,24 @@
                         <span class="detail-value">UCI-99887766</span>
                     </div>
                     <div class="detail-item">
-                        <span class="detail-label">Solde moyen:</span>
-                        <span class="detail-value highlight">5,000.00 $ CAD (< LICO)</span>
+                        <span class="detail-label">Average Balance:</span>
+                        <span class="detail-value highlight">$5,000.00 CAD (< LICO)</span>
                     </div>
                     <div class="detail-item">
-                        <span class="detail-label">Date du relevé:</span>
-                        <span class="detail-value highlight">2024-01-15 (> 6 mois)</span>
+                        <span class="detail-label">Statement Date:</span>
+                        <span class="detail-value highlight">2024-01-15 (> 6 months)</span>
                     </div>
                     <div class="detail-item">
-                        <span class="detail-label">Problèmes attendus:</span>
-                        <span class="detail-value">LICO insuffisant, Document périmé</span>
+                        <span class="detail-label">Expected Issues:</span>
+                        <span class="detail-value">Insufficient LICO, Expired document</span>
                     </div>
                 </div>
                 <div class="doc-actions">
                     <a href="releve_bancaire.pdf" target="_blank" class="btn btn-primary">
-                        📥 Ouvrir le PDF
+                        📥 Open PDF
                     </a>
                     <a href="releve_bancaire.pdf" download class="btn btn-secondary">
-                        💾 Télécharger
+                        💾 Download
                     </a>
                 </div>
             </div>
@@ -473,14 +473,14 @@
             <div class="doc-card warning">
                 <div class="doc-header">
                     <div>
-                        <div class="doc-title">📋 Formulaire Immigration IMM 0008</div>
-                        <div class="doc-type">IRCC - Demande de résidence permanente</div>
+                        <div class="doc-title">📋 Immigration Form IMM 0008</div>
+                        <div class="doc-type">IRCC - Permanent Residence Application</div>
                     </div>
-                    <span class="status-badge warning">Avertissement</span>
+                    <span class="status-badge warning">Warning</span>
                 </div>
                 <div class="doc-details">
                     <div class="detail-item">
-                        <span class="detail-label">Demandeur:</span>
+                        <span class="detail-label">Applicant:</span>
                         <span class="detail-value">Sophie Marie Martin</span>
                     </div>
                     <div class="detail-item">
@@ -488,24 +488,24 @@
                         <span class="detail-value">UCI-99887766</span>
                     </div>
                     <div class="detail-item">
-                        <span class="detail-label">Fonds déclarés:</span>
-                        <span class="detail-value highlight">5,000.00 $ CAD</span>
+                        <span class="detail-label">Declared Funds:</span>
+                        <span class="detail-value highlight">$5,000.00 CAD</span>
                     </div>
                     <div class="detail-item">
-                        <span class="detail-label">Passeport:</span>
+                        <span class="detail-label">Passport:</span>
                         <span class="detail-value">12AB34567 (exp. 2026-08-15)</span>
                     </div>
                     <div class="detail-item">
-                        <span class="detail-label">Problèmes attendus:</span>
-                        <span class="detail-value">Fonds insuffisants, Documents anciens</span>
+                        <span class="detail-label">Expected Issues:</span>
+                        <span class="detail-value">Insufficient funds, Old documents</span>
                     </div>
                 </div>
                 <div class="doc-actions">
                     <a href="formulaire_immigration.pdf" target="_blank" class="btn btn-primary">
-                        📥 Ouvrir le PDF
+                        📥 Open PDF
                     </a>
                     <a href="formulaire_immigration.pdf" download class="btn btn-secondary">
-                        💾 Télécharger
+                        💾 Download
                     </a>
                 </div>
             </div>
@@ -514,14 +514,14 @@
             <div class="doc-card compliant">
                 <div class="doc-header">
                     <div>
-                        <div class="doc-title">✅ Relevé Bancaire (Conforme)</div>
-                        <div class="doc-type">Royal Bank of Canada - Certifié</div>
+                        <div class="doc-title">✅ Bank Statement (Compliant)</div>
+                        <div class="doc-type">Royal Bank of Canada - Certified</div>
                     </div>
-                    <span class="status-badge compliant">Conforme</span>
+                    <span class="status-badge compliant">Compliant</span>
                 </div>
                 <div class="doc-details">
                     <div class="detail-item">
-                        <span class="detail-label">Demandeur:</span>
+                        <span class="detail-label">Applicant:</span>
                         <span class="detail-value">Jean-Claude Tremblay</span>
                     </div>
                     <div class="detail-item">
@@ -529,33 +529,32 @@
                         <span class="detail-value">UCI-12345678</span>
                     </div>
                     <div class="detail-item">
-                        <span class="detail-label">Solde moyen:</span>
-                        <span class="detail-value good">32,500.00 $ CAD (> LICO ✓)</span>
+                        <span class="detail-label">Average Balance:</span>
+                        <span class="detail-value good">$32,500.00 CAD (> LICO ✓)</span>
                     </div>
                     <div class="detail-item">
-                        <span class="detail-label">Date du relevé:</span>
-                        <span class="detail-value good">Récent (< 6 mois ✓)</span>
+                        <span class="detail-label">Statement Date:</span>
+                        <span class="detail-value good">Recent (< 6 months ✓)</span>
                     </div>
                     <div class="detail-item">
-                        <span class="detail-label">Résultat attendu:</span>
-                        <span class="detail-value good">Toutes les vérifications passent</span>
+                        <span class="detail-label">Expected Result:</span>
+                        <span class="detail-value good">All checks pass</span>
                     </div>
                 </div>
                 <div class="doc-actions">
                     <a href="releve_conforme.pdf" target="_blank" class="btn btn-primary">
-                        📥 Ouvrir le PDF
+                        📥 Open PDF
                     </a>
                     <a href="releve_conforme.pdf" download class="btn btn-secondary">
-                        💾 Télécharger
+                        💾 Download
                     </a>
                 </div>
             </div>
         </div>
         
         <footer>
-            <p>OLI - Overlay Legal Intelligence | <a href="legacy-portal.html">Portail Legacy IRCC</a> | <a href="https://github.com/Wylhelm/oli">GitHub</a></p>
+            <p>OLI - Overlay Legal Intelligence | <a href="legacy-portal.html">IRCC Legacy Portal</a> | <a href="https://github.com/Wylhelm/oli">GitHub</a></p>
         </footer>
     </div>
 </body>
 </html>
-

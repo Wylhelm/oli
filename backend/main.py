@@ -4,7 +4,12 @@ from pydantic import BaseModel
 from typing import Optional, List
 from contextlib import asynccontextmanager
 import re
+import os
 from enum import Enum
+
+# Load environment variables from .env file
+from dotenv import load_dotenv
+load_dotenv()
 
 # RAG imports
 from rag.vector_store import LegalVectorStore
@@ -138,7 +143,7 @@ class AnalysisResponse(BaseModel):
 LEGAL_KNOWLEDGE = {
     "LICO": {
         "rule": "R179(b)",
-        "description": "Low Income Cut-Off - Seuil de suffisance financière",
+        "description": "Low Income Cut-Off - Financial sufficiency threshold",
         "thresholds": {
             1: 20635,  # 1 person
             2: 25690,
@@ -148,25 +153,25 @@ LEGAL_KNOWLEDGE = {
             6: 49051,
             7: 54610
         },
-        "url": "https://laws-lois.justice.gc.ca/fra/reglements/DORS-2002-227/page-22.html"
+        "url": "https://laws-lois.justice.gc.ca/eng/regulations/SOR-2002-227/page-22.html"
     },
     "DOCUMENT_VALIDITY": {
         "rule": "R54",
-        "description": "Les documents doivent être datés de moins de 6 mois",
+        "description": "Documents must be dated within 6 months",
         "max_age_days": 180,
-        "url": "https://laws-lois.justice.gc.ca/fra/reglements/DORS-2002-227/page-8.html"
+        "url": "https://laws-lois.justice.gc.ca/eng/regulations/SOR-2002-227/page-8.html"
     },
     "IDENTITY_VERIFICATION": {
         "rule": "R52",
-        "description": "Vérification obligatoire de l'identité du demandeur",
+        "description": "Mandatory identity verification of the applicant",
         "required_fields": ["nom", "name", "date de naissance", "dob", "pays", "country"],
-        "url": "https://laws-lois.justice.gc.ca/fra/reglements/DORS-2002-227/page-7.html"
+        "url": "https://laws-lois.justice.gc.ca/eng/regulations/SOR-2002-227/page-7.html"
     },
     "PROOF_OF_FUNDS": {
         "rule": "R76(1)",
-        "description": "Preuve de fonds requise - relevé bancaire certifié",
+        "description": "Proof of funds required - certified bank statement",
         "required_keywords": ["relevé", "bancaire", "bank statement", "certifié", "certified"],
-        "url": "https://laws-lois.justice.gc.ca/fra/reglements/DORS-2002-227/page-10.html"
+        "url": "https://laws-lois.justice.gc.ca/eng/regulations/SOR-2002-227/page-10.html"
     }
 }
 
@@ -187,9 +192,10 @@ def anonymize_text(text: str) -> str:
     
     # Person names (common pattern after indicators)
     name_patterns = [
-        (r"(Nom complet\s*:\s*)([A-Z][a-zéèêëàâ]+\s+[A-Z][a-zéèêëàâ]+)", r"\1<PERSONNE>"),
-        (r"(Demandeur\s*:\s*)([A-Z][a-zéèêëàâ]+\s+[A-Z][a-zéèêëàâ]+)", r"\1<PERSONNE>"),
-        (r"(Name\s*:\s*)([A-Z][a-z]+\s+[A-Z][a-z]+)", r"\1<PERSONNE>"),
+        (r"(Nom complet\s*:\s*)([A-Z][a-zéèêëàâ]+\s+[A-Z][a-zéèêëàâ]+)", r"\1<PERSON>"),
+        (r"(Demandeur\s*:\s*)([A-Z][a-zéèêëàâ]+\s+[A-Z][a-zéèêëàâ]+)", r"\1<PERSON>"),
+        (r"(Full Name\s*:\s*)([A-Z][a-z]+\s+[A-Z][a-z]+)", r"\1<PERSON>"),
+        (r"(Name\s*:\s*)([A-Z][a-z]+\s+[A-Z][a-z]+)", r"\1<PERSON>"),
     ]
     for pattern, replacement in name_patterns:
         anonymized = re.sub(pattern, replacement, anonymized)
@@ -198,16 +204,16 @@ def anonymize_text(text: str) -> str:
     anonymized = re.sub(r"UCI[-\s]?\d{8,10}", "<UCI>", anonymized, flags=re.IGNORECASE)
     
     # SIN numbers
-    anonymized = re.sub(r"\b\d{3}[-\s]?\d{3}[-\s]?\d{3}\b", "<NAS>", anonymized)
+    anonymized = re.sub(r"\b\d{3}[-\s]?\d{3}[-\s]?\d{3}\b", "<SIN>", anonymized)
     
     # Email
-    anonymized = re.sub(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}", "<COURRIEL>", anonymized)
+    anonymized = re.sub(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}", "<EMAIL>", anonymized)
     
     # Phone
-    anonymized = re.sub(r"\b(\+1[-\s]?)?\(?\d{3}\)?[-\s]?\d{3}[-\s]?\d{4}\b", "<TELEPHONE>", anonymized)
+    anonymized = re.sub(r"\b(\+1[-\s]?)?\(?\d{3}\)?[-\s]?\d{3}[-\s]?\d{4}\b", "<PHONE>", anonymized)
     
     # Postal codes
-    anonymized = re.sub(r"\b[A-Z]\d[A-Z][-\s]?\d[A-Z]\d\b", "<CODE_POSTAL>", anonymized, flags=re.IGNORECASE)
+    anonymized = re.sub(r"\b[A-Z]\d[A-Z][-\s]?\d[A-Z]\d\b", "<POSTAL_CODE>", anonymized, flags=re.IGNORECASE)
     
     return anonymized
 
@@ -249,12 +255,12 @@ def check_financial_threshold(text: str, family_size: int = 1) -> ComplianceChec
     if income == 0:
         return ComplianceCheck(
             id="LICO_001",
-            name="Vérification LICO",
+            name="LICO Verification",
             status=RiskLevel.AVERTISSEMENT,
-            message="Impossible de détecter le montant des fonds disponibles.",
-            reference=f"Loi sur l'immigration, Article {LEGAL_KNOWLEDGE['LICO']['rule']}",
+            message="Unable to detect available funds amount.",
+            reference=f"Immigration Act, Article {LEGAL_KNOWLEDGE['LICO']['rule']}",
             url=LEGAL_KNOWLEDGE["LICO"]["url"],
-            recommendation="Vérifier manuellement le relevé bancaire.",
+            recommendation="Manually verify the bank statement.",
             highlight_text=None
         )
     
@@ -265,23 +271,23 @@ def check_financial_threshold(text: str, family_size: int = 1) -> ComplianceChec
         
         return ComplianceCheck(
             id="LICO_001",
-            name="Vérification LICO",
+            name="LICO Verification",
             status=RiskLevel.CRITIQUE,
-            message=f"Solde insuffisant détecté ({income:,} $ < {threshold:,} $).",
-            reference=f"Loi sur l'immigration, Article {LEGAL_KNOWLEDGE['LICO']['rule']}",
+            message=f"Insufficient balance detected ({income:,} $ < {threshold:,} $).",
+            reference=f"Immigration Act, Article {LEGAL_KNOWLEDGE['LICO']['rule']}",
             url=LEGAL_KNOWLEDGE["LICO"]["url"],
-            recommendation="Demander un co-signataire, des preuves de fonds supplémentaires, ou envisager le rejet.",
+            recommendation="Request a co-signer, additional proof of funds, or consider rejection.",
             highlight_text=highlight
         )
     
     return ComplianceCheck(
         id="LICO_001",
-        name="Vérification LICO",
+        name="LICO Verification",
         status=RiskLevel.CONFORME,
-        message=f"Seuil financier respecté ({income:,} $ ≥ {threshold:,} $).",
-        reference=f"Loi sur l'immigration, Article {LEGAL_KNOWLEDGE['LICO']['rule']}",
+        message=f"Financial threshold met ({income:,} $ ≥ {threshold:,} $).",
+        reference=f"Immigration Act, Article {LEGAL_KNOWLEDGE['LICO']['rule']}",
         url=LEGAL_KNOWLEDGE["LICO"]["url"],
-        recommendation="Aucune action requise.",
+        recommendation="No action required.",
         highlight_text=None
     )
 
@@ -295,12 +301,12 @@ def check_document_validity(text: str) -> ComplianceCheck:
     if not date_str:
         return ComplianceCheck(
             id="DOC_001",
-            name="Validité des documents",
+            name="Document Validity",
             status=RiskLevel.AVERTISSEMENT,
-            message="Aucune date de document détectée.",
-            reference=f"Loi sur l'immigration, Article {LEGAL_KNOWLEDGE['DOCUMENT_VALIDITY']['rule']}",
+            message="No document date detected.",
+            reference=f"Immigration Act, Article {LEGAL_KNOWLEDGE['DOCUMENT_VALIDITY']['rule']}",
             url=LEGAL_KNOWLEDGE["DOCUMENT_VALIDITY"]["url"],
-            recommendation="Vérifier manuellement la date des documents.",
+            recommendation="Manually verify document dates.",
             highlight_text=None
         )
     
@@ -312,34 +318,34 @@ def check_document_validity(text: str) -> ComplianceCheck:
         if doc_date < cutoff_date:
             return ComplianceCheck(
                 id="DOC_001",
-                name="Validité des documents",
+                name="Document Validity",
                 status=RiskLevel.CRITIQUE,
-                message=f"Document périmé (daté du {date_str}, > 6 mois).",
-                reference=f"Loi sur l'immigration, Article {LEGAL_KNOWLEDGE['DOCUMENT_VALIDITY']['rule']}",
+                message=f"Expired document (dated {date_str}, > 6 months old).",
+                reference=f"Immigration Act, Article {LEGAL_KNOWLEDGE['DOCUMENT_VALIDITY']['rule']}",
                 url=LEGAL_KNOWLEDGE["DOCUMENT_VALIDITY"]["url"],
-                recommendation="Demander des documents mis à jour datant de moins de 6 mois.",
+                recommendation="Request updated documents dated within 6 months.",
                 highlight_text=date_str
             )
         
         return ComplianceCheck(
             id="DOC_001",
-            name="Validité des documents",
+            name="Document Validity",
             status=RiskLevel.CONFORME,
-            message=f"Documents dans la période de validité ({date_str}).",
-            reference=f"Loi sur l'immigration, Article {LEGAL_KNOWLEDGE['DOCUMENT_VALIDITY']['rule']}",
+            message=f"Documents within validity period ({date_str}).",
+            reference=f"Immigration Act, Article {LEGAL_KNOWLEDGE['DOCUMENT_VALIDITY']['rule']}",
             url=LEGAL_KNOWLEDGE["DOCUMENT_VALIDITY"]["url"],
-            recommendation="Aucune action requise.",
+            recommendation="No action required.",
             highlight_text=None
         )
     except ValueError:
         return ComplianceCheck(
             id="DOC_001",
-            name="Validité des documents",
+            name="Document Validity",
             status=RiskLevel.AVERTISSEMENT,
-            message="Format de date non reconnu.",
-            reference=f"Loi sur l'immigration, Article {LEGAL_KNOWLEDGE['DOCUMENT_VALIDITY']['rule']}",
+            message="Unrecognized date format.",
+            reference=f"Immigration Act, Article {LEGAL_KNOWLEDGE['DOCUMENT_VALIDITY']['rule']}",
             url=LEGAL_KNOWLEDGE["DOCUMENT_VALIDITY"]["url"],
-            recommendation="Vérifier manuellement la date des documents.",
+            recommendation="Manually verify document dates.",
             highlight_text=None
         )
 
@@ -363,34 +369,34 @@ def check_identity_fields(text: str) -> ComplianceCheck:
     if completeness >= 80:
         return ComplianceCheck(
             id="ID_001",
-            name="Vérification d'identité",
+            name="Identity Verification",
             status=RiskLevel.CONFORME,
-            message=f"Informations d'identité complètes ({int(completeness)}%).",
-            reference=f"Loi sur l'immigration, Article {LEGAL_KNOWLEDGE['IDENTITY_VERIFICATION']['rule']}",
+            message=f"Identity information complete ({int(completeness)}%).",
+            reference=f"Immigration Act, Article {LEGAL_KNOWLEDGE['IDENTITY_VERIFICATION']['rule']}",
             url=LEGAL_KNOWLEDGE["IDENTITY_VERIFICATION"]["url"],
-            recommendation="Aucune action requise.",
+            recommendation="No action required.",
             highlight_text=None
         )
     elif completeness >= 50:
         return ComplianceCheck(
             id="ID_001",
-            name="Vérification d'identité",
+            name="Identity Verification",
             status=RiskLevel.AVERTISSEMENT,
-            message=f"Informations d'identité partielles ({int(completeness)}%).",
-            reference=f"Loi sur l'immigration, Article {LEGAL_KNOWLEDGE['IDENTITY_VERIFICATION']['rule']}",
+            message=f"Partial identity information ({int(completeness)}%).",
+            reference=f"Immigration Act, Article {LEGAL_KNOWLEDGE['IDENTITY_VERIFICATION']['rule']}",
             url=LEGAL_KNOWLEDGE["IDENTITY_VERIFICATION"]["url"],
-            recommendation=f"Éléments potentiellement manquants: {', '.join(missing[:3])}.",
+            recommendation=f"Potentially missing elements: {', '.join(missing[:3])}.",
             highlight_text=None
         )
     else:
         return ComplianceCheck(
             id="ID_001",
-            name="Vérification d'identité",
+            name="Identity Verification",
             status=RiskLevel.CRITIQUE,
-            message=f"Informations d'identité insuffisantes ({int(completeness)}%).",
-            reference=f"Loi sur l'immigration, Article {LEGAL_KNOWLEDGE['IDENTITY_VERIFICATION']['rule']}",
+            message=f"Insufficient identity information ({int(completeness)}%).",
+            reference=f"Immigration Act, Article {LEGAL_KNOWLEDGE['IDENTITY_VERIFICATION']['rule']}",
             url=LEGAL_KNOWLEDGE["IDENTITY_VERIFICATION"]["url"],
-            recommendation=f"Demander les informations manquantes: {', '.join(missing)}.",
+            recommendation=f"Request missing information: {', '.join(missing)}.",
             highlight_text=None
         )
 
@@ -405,34 +411,34 @@ def check_proof_of_funds(text: str) -> ComplianceCheck:
     if len(found) >= 2:
         return ComplianceCheck(
             id="POF_001",
-            name="Preuve de fonds",
+            name="Proof of Funds",
             status=RiskLevel.CONFORME,
-            message="Type de preuve de fonds accepté détecté.",
-            reference=f"Loi sur l'immigration, Article {LEGAL_KNOWLEDGE['PROOF_OF_FUNDS']['rule']}",
+            message="Accepted proof of funds type detected.",
+            reference=f"Immigration Act, Article {LEGAL_KNOWLEDGE['PROOF_OF_FUNDS']['rule']}",
             url=LEGAL_KNOWLEDGE["PROOF_OF_FUNDS"]["url"],
-            recommendation="Aucune action requise.",
+            recommendation="No action required.",
             highlight_text=None
         )
     elif len(found) >= 1:
         return ComplianceCheck(
             id="POF_001",
-            name="Preuve de fonds",
+            name="Proof of Funds",
             status=RiskLevel.AVERTISSEMENT,
-            message="Type de preuve de fonds partiellement identifié.",
-            reference=f"Loi sur l'immigration, Article {LEGAL_KNOWLEDGE['PROOF_OF_FUNDS']['rule']}",
+            message="Proof of funds type partially identified.",
+            reference=f"Immigration Act, Article {LEGAL_KNOWLEDGE['PROOF_OF_FUNDS']['rule']}",
             url=LEGAL_KNOWLEDGE["PROOF_OF_FUNDS"]["url"],
-            recommendation="Confirmer que le relevé est certifié par l'institution financière.",
+            recommendation="Confirm the statement is certified by the financial institution.",
             highlight_text=None
         )
     else:
         return ComplianceCheck(
             id="POF_001",
-            name="Preuve de fonds",
+            name="Proof of Funds",
             status=RiskLevel.CRITIQUE,
-            message="Aucune preuve de fonds acceptable détectée.",
-            reference=f"Loi sur l'immigration, Article {LEGAL_KNOWLEDGE['PROOF_OF_FUNDS']['rule']}",
+            message="No acceptable proof of funds detected.",
+            reference=f"Immigration Act, Article {LEGAL_KNOWLEDGE['PROOF_OF_FUNDS']['rule']}",
             url=LEGAL_KNOWLEDGE["PROOF_OF_FUNDS"]["url"],
-            recommendation="Demander un relevé bancaire certifié des 6 derniers mois.",
+            recommendation="Request a certified bank statement from the last 6 months.",
             highlight_text=None
         )
 
@@ -479,13 +485,13 @@ def generate_summary(checks: List[ComplianceCheck], overall_status: RiskLevel) -
     warning_checks = [c for c in checks if c.status == RiskLevel.AVERTISSEMENT]
     
     if overall_status == RiskLevel.CONFORME:
-        return "Tous les contrôles de conformité sont satisfaits. Le dossier peut être traité."
+        return "All compliance checks are satisfied. The file can be processed."
     elif overall_status == RiskLevel.CRITIQUE:
         issues = [c.name for c in critique_checks]
-        return f"Problèmes critiques détectés: {', '.join(issues)}. Action immédiate requise."
+        return f"Critical issues detected: {', '.join(issues)}. Immediate action required."
     else:
         issues = [c.name for c in warning_checks]
-        return f"Points d'attention: {', '.join(issues)}. Vérification manuelle recommandée."
+        return f"Points of attention: {', '.join(issues)}. Manual verification recommended."
 
 
 @app.post("/analyze", response_model=AnalysisResponse)

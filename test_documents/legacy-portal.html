@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Portail Immigration Canada - Système Hérité</title>
+    <title>Immigration Canada Portal - Legacy System</title>
     <style>
         * {
             box-sizing: border-box;
@@ -301,83 +301,83 @@
     <div class="container">
         <!-- Case Selector Bar -->
         <div class="case-selector">
-            <label>📂 Sélectionner un dossier :</label>
+            <label>📂 Select a case:</label>
             <select id="caseSelect" onchange="switchCase(this.value)">
-                <option value="sophie">🔴 Sophie Martin - CRITIQUE (fonds insuffisants, doc périmé)</option>
-                <option value="jean">🟢 Jean-Claude Tremblay - CONFORME (tout OK)</option>
-                <option value="marie">🟡 Marie Dubois - AVERTISSEMENT (fonds limite)</option>
-                <option value="ahmed">🔴 Ahmed Hassan - CRITIQUE (multiples problèmes)</option>
+                <option value="sophie">🔴 Sophie Martin - CRITICAL (insufficient funds, expired doc)</option>
+                <option value="jean">🟢 Jean-Claude Tremblay - COMPLIANT (all OK)</option>
+                <option value="marie">🟡 Marie Dubois - WARNING (funds at limit)</option>
+                <option value="ahmed">🔴 Ahmed Hassan - CRITICAL (multiple issues)</option>
             </select>
-            <span id="caseIndicator" class="case-indicator critical">🔴 CRITIQUE</span>
-            <a href="index.html" class="back-link">← Retour aux tests</a>
+            <span id="caseIndicator" class="case-indicator critical">🔴 CRITICAL</span>
+            <a href="index.html" class="back-link">← Back to tests</a>
         </div>
         
         <!-- Government Header -->
         <div class="gov-header">
             <span class="canada-flag">🍁</span>
-            <h1>Gouvernement du Canada / Government of Canada</h1>
-            <p>Immigration, Réfugiés et Citoyenneté Canada (IRCC) — Système de Traitement des Demandes v4.2.1</p>
+            <h1>Government of Canada / Gouvernement du Canada</h1>
+            <p>Immigration, Refugees and Citizenship Canada (IRCC) — Application Processing System v4.2.1</p>
         </div>
 
         <!-- Toolbar -->
         <div class="toolbar">
-            <span>📁 Fichier</span>
-            <span>✏️ Modifier</span>
-            <span>🔍 Rechercher</span>
-            <span>📋 Rapports</span>
-            <span>❓ Aide</span>
+            <span>📁 File</span>
+            <span>✏️ Edit</span>
+            <span>🔍 Search</span>
+            <span>📋 Reports</span>
+            <span>❓ Help</span>
             <span style="float: right; color: #666;">Agent: J.TREMBLAY | Session: <span id="sessionDate"></span></span>
         </div>
 
         <div class="content">
             <!-- Case Header -->
             <div class="case-header">
-                <span class="case-id">Dossier #: <span id="caseNumber">IMM-2024-00547821</span></span>
-                <strong>📋 FICHE DE DEMANDE - ENTRÉE EXPRESS</strong>
+                <span class="case-id">Case #: <span id="caseNumber">IMM-2024-00547821</span></span>
+                <strong>📋 APPLICATION FILE - EXPRESS ENTRY</strong>
             </div>
 
             <!-- Applicant Information -->
             <div class="section">
-                <div class="section-title">👤 Information du Demandeur Principal</div>
+                <div class="section-title">👤 Principal Applicant Information</div>
                 <div class="section-content">
                     <div class="field">
-                        <span class="label">Nom complet :</span>
+                        <span class="label">Full Name:</span>
                         <span class="value"><strong id="fullName">Sophie Martin</strong></span>
                     </div>
                     <div class="field">
-                        <span class="label">ID Unique Client (UCI) :</span>
+                        <span class="label">Unique Client ID (UCI):</span>
                         <span class="value" id="uci">UCI-99887766</span>
                     </div>
                     <div class="field">
-                        <span class="label">Date de naissance :</span>
+                        <span class="label">Date of Birth:</span>
                         <span class="value" id="dob">1985-04-12</span>
                     </div>
                     <div class="field">
-                        <span class="label">Sexe :</span>
-                        <span class="value" id="gender">Féminin</span>
+                        <span class="label">Gender:</span>
+                        <span class="value" id="gender">Female</span>
                     </div>
                     <div class="field">
-                        <span class="label">Pays de citoyenneté :</span>
+                        <span class="label">Country of Citizenship:</span>
                         <span class="value" id="citizenship">France 🇫🇷</span>
                     </div>
                     <div class="field">
-                        <span class="label">Pays de résidence :</span>
+                        <span class="label">Country of Residence:</span>
                         <span class="value" id="residence">France</span>
                     </div>
                     <div class="field">
-                        <span class="label">Numéro de passeport :</span>
+                        <span class="label">Passport Number:</span>
                         <span class="value" id="passport">FR1234567</span>
                     </div>
                     <div class="field">
-                        <span class="label">Courriel :</span>
+                        <span class="label">Email:</span>
                         <span class="value" id="email">sophie.martin@email.fr</span>
                     </div>
                     <div class="field">
-                        <span class="label">État civil :</span>
-                        <span class="value" id="maritalStatus">Célibataire</span>
+                        <span class="label">Marital Status:</span>
+                        <span class="value" id="maritalStatus">Single</span>
                     </div>
                     <div class="field">
-                        <span class="label">Personnes à charge :</span>
+                        <span class="label">Dependents:</span>
                         <span class="value" id="dependents">0</span>
                     </div>
                 </div>
@@ -385,83 +385,83 @@
 
             <!-- Financial Details -->
             <div class="section">
-                <div class="section-title">💰 Détails Financiers - Preuve de Fonds</div>
+                <div class="section-title">💰 Financial Details - Proof of Funds</div>
                 <div class="section-content">
                     <div class="field">
-                        <span class="label">Type de preuve :</span>
-                        <span class="value" id="proofType">Relevé Bancaire (Certifié)</span>
+                        <span class="label">Proof Type:</span>
+                        <span class="value" id="proofType">Bank Statement (Certified)</span>
                     </div>
                     <div class="field">
-                        <span class="label">Institution financière :</span>
+                        <span class="label">Financial Institution:</span>
                         <span class="value" id="bankName">Banque Nationale de Paris (BNP)</span>
                     </div>
                     <div class="field">
-                        <span class="label">Numéro de compte :</span>
+                        <span class="label">Account Number:</span>
                         <span class="value" id="accountNumber">****4521</span>
                     </div>
                     <div class="divider"></div>
                     <div class="field">
-                        <span class="label">Solde moyen (6 mois) :</span>
-                        <span class="value amount" id="balance">5 000 $</span>
+                        <span class="label">Average Balance (6 months):</span>
+                        <span class="value amount" id="balance">$5,000</span>
                     </div>
                     <div class="field">
-                        <span class="label">Devise :</span>
-                        <span class="value" id="currency">CAD (converti de EUR)</span>
+                        <span class="label">Currency:</span>
+                        <span class="value" id="currency">CAD (converted from EUR)</span>
                     </div>
                     <div class="field">
-                        <span class="label">Date du relevé :</span>
+                        <span class="label">Statement Date:</span>
                         <span class="value" id="statementDate">2024-01-01</span>
                     </div>
                     <div class="field">
-                        <span class="label">Seuil LICO requis :</span>
-                        <span class="value" id="licoRequired">20 635 $ CAD (1 personne)</span>
+                        <span class="label">Required LICO Threshold:</span>
+                        <span class="value" id="licoRequired">$20,635 CAD (1 person)</span>
                     </div>
                     
                     <div class="notes-box" id="financialNote">
-                        <strong>📌 Note:</strong> Le seuil LICO requis pour une personne seule est de <strong>20 635 $ CAD</strong>. 
-                        Vérifier la conformité selon le Règlement R179(b).
+                        <strong>📌 Note:</strong> The required LICO threshold for a single person is <strong>$20,635 CAD</strong>. 
+                        Verify compliance according to Regulation R179(b).
                     </div>
                 </div>
             </div>
 
             <!-- Application Status -->
             <div class="section">
-                <div class="section-title">📊 Statut de la Demande</div>
+                <div class="section-title">📊 Application Status</div>
                 <div class="section-content">
                     <div class="field">
-                        <span class="label">Date de soumission :</span>
+                        <span class="label">Submission Date:</span>
                         <span class="value" id="submissionDate">2024-01-01</span>
                     </div>
                     <div class="field">
-                        <span class="label">Catégorie d'immigration :</span>
-                        <span class="value" id="category">Entrée Express - Travailleur Qualifié Fédéral</span>
+                        <span class="label">Immigration Category:</span>
+                        <span class="value" id="category">Express Entry - Federal Skilled Worker</span>
                     </div>
                     <div class="field">
-                        <span class="label">Score CRS :</span>
+                        <span class="label">CRS Score:</span>
                         <span class="value"><strong id="crsScore">468</strong> points</span>
                     </div>
                     <div class="field">
-                        <span class="label">État actuel :</span>
+                        <span class="label">Current Status:</span>
                         <span class="value" id="currentStatus">
-                            <span class="status-badge status-pending">⏳ En attente d'évaluation</span>
+                            <span class="status-badge status-pending">⏳ Pending Evaluation</span>
                         </span>
                     </div>
                     <div class="field">
-                        <span class="label">Vérification biométrique :</span>
+                        <span class="label">Biometric Verification:</span>
                         <span class="value" id="biometricStatus">
-                            <span class="status-badge status-verified">✓ Complétée</span>
+                            <span class="status-badge status-verified">✓ Completed</span>
                         </span>
                     </div>
                     <div class="field">
-                        <span class="label">Vérification médicale :</span>
+                        <span class="label">Medical Examination:</span>
                         <span class="value" id="medicalStatus">
-                            <span class="status-badge status-verified">✓ Approuvée</span>
+                            <span class="status-badge status-verified">✓ Approved</span>
                         </span>
                     </div>
                     <div class="field">
-                        <span class="label">Vérification de sécurité :</span>
+                        <span class="label">Security Screening:</span>
                         <span class="value" id="securityStatus">
-                            <span class="status-badge status-pending">⏳ En cours</span>
+                            <span class="status-badge status-pending">⏳ In Progress</span>
                         </span>
                     </div>
                 </div>
@@ -469,46 +469,46 @@
 
             <!-- Document Checklist -->
             <div class="section">
-                <div class="section-title">📄 Liste des Documents Soumis</div>
+                <div class="section-title">📄 Submitted Documents List</div>
                 <div class="section-content">
                     <table class="data-table">
                         <thead>
                             <tr>
                                 <th>Document</th>
-                                <th>Date de soumission</th>
-                                <th>Statut</th>
+                                <th>Submission Date</th>
+                                <th>Status</th>
                             </tr>
                         </thead>
                         <tbody id="documentsTable">
                             <tr>
-                                <td>Passeport (copie certifiée)</td>
+                                <td>Passport (certified copy)</td>
                                 <td>2024-01-01</td>
-                                <td><span class="status-badge status-verified">✓ Vérifié</span></td>
+                                <td><span class="status-badge status-verified">✓ Verified</span></td>
                             </tr>
                             <tr>
-                                <td>Relevé bancaire (6 mois)</td>
+                                <td>Bank Statement (6 months)</td>
                                 <td>2024-01-01</td>
-                                <td><span class="status-badge status-warning">⚠ À vérifier</span></td>
+                                <td><span class="status-badge status-warning">⚠ To Review</span></td>
                             </tr>
                             <tr>
-                                <td>Diplôme universitaire</td>
+                                <td>University Diploma</td>
                                 <td>2024-01-02</td>
-                                <td><span class="status-badge status-verified">✓ Vérifié</span></td>
+                                <td><span class="status-badge status-verified">✓ Verified</span></td>
                             </tr>
                             <tr>
-                                <td>Évaluation des diplômes (ECA)</td>
+                                <td>Educational Credential Assessment (ECA)</td>
                                 <td>2024-01-02</td>
-                                <td><span class="status-badge status-verified">✓ Vérifié</span></td>
+                                <td><span class="status-badge status-verified">✓ Verified</span></td>
                             </tr>
                             <tr>
-                                <td>Test de langue (IELTS)</td>
+                                <td>Language Test (IELTS)</td>
                                 <td>2023-12-15</td>
-                                <td><span class="status-badge status-verified">✓ Vérifié</span></td>
+                                <td><span class="status-badge status-verified">✓ Verified</span></td>
                             </tr>
                             <tr>
-                                <td>Certificat de police</td>
+                                <td>Police Certificate</td>
                                 <td>2024-01-03</td>
-                                <td><span class="status-badge status-pending">⏳ En attente</span></td>
+                                <td><span class="status-badge status-pending">⏳ Pending</span></td>
                             </tr>
                         </tbody>
                     </table>
@@ -517,17 +517,17 @@
 
             <!-- Action Buttons -->
             <div class="action-buttons">
-                <button class="btn btn-secondary">📋 Imprimer le dossier</button>
-                <button class="btn btn-secondary">📤 Exporter PDF</button>
-                <button class="btn btn-primary">✅ Soumettre décision</button>
+                <button class="btn btn-secondary">📋 Print File</button>
+                <button class="btn btn-secondary">📤 Export PDF</button>
+                <button class="btn btn-primary">✅ Submit Decision</button>
             </div>
         </div>
 
         <!-- Footer -->
         <div class="footer">
-            <div class="confidential">🔒 PROTÉGÉ B — RENSEIGNEMENTS PERSONNELS</div>
-            © Sa Majesté le Roi du chef du Canada, représentée par le ministre de la Citoyenneté et de l'Immigration, 1998-2024.<br>
-            Système GCMS Legacy v4.2.1 | Dernière mise à jour: <span id="lastUpdate"></span>
+            <div class="confidential">🔒 PROTECTED B — PERSONAL INFORMATION</div>
+            © His Majesty the King in Right of Canada, represented by the Minister of Citizenship and Immigration, 1998-2024.<br>
+            GCMS Legacy System v4.2.1 | Last Update: <span id="lastUpdate"></span>
         </div>
     </div>
 
@@ -535,145 +535,145 @@
         // Test cases data
         const cases = {
             sophie: {
-                indicator: { class: 'critical', text: '🔴 CRITIQUE' },
+                indicator: { class: 'critical', text: '🔴 CRITICAL' },
                 caseNumber: 'IMM-2024-00547821',
                 fullName: 'Sophie Martin',
                 uci: 'UCI-99887766',
                 dob: '1985-04-12',
-                gender: 'Féminin',
+                gender: 'Female',
                 citizenship: 'France 🇫🇷',
                 residence: 'France',
                 passport: 'FR1234567',
                 email: 'sophie.martin@email.fr',
-                maritalStatus: 'Célibataire',
+                maritalStatus: 'Single',
                 dependents: '0',
-                proofType: 'Relevé Bancaire (Certifié)',
+                proofType: 'Bank Statement (Certified)',
                 bankName: 'Banque Nationale de Paris (BNP)',
                 accountNumber: '****4521',
-                balance: '5 000 $',
+                balance: '$5,000',
                 balanceClass: 'highlight-danger',
-                currency: 'CAD (converti de EUR)',
+                currency: 'CAD (converted from EUR)',
                 statementDate: '2024-01-01',
                 statementDateClass: 'highlight-danger',
-                licoRequired: '20 635 $ CAD (1 personne)',
-                financialNote: '<strong>⚠️ ALERTE:</strong> Le solde de 5 000 $ est <strong>INFÉRIEUR</strong> au seuil LICO requis (20 635 $). Document daté du 2024-01-01 (> 6 mois). Deux problèmes critiques détectés.',
+                licoRequired: '$20,635 CAD (1 person)',
+                financialNote: '<strong>⚠️ ALERT:</strong> The balance of $5,000 is <strong>BELOW</strong> the required LICO threshold ($20,635). Document dated 2024-01-01 (> 6 months). Two critical issues detected.',
                 submissionDate: '2024-01-01',
-                category: 'Entrée Express - Travailleur Qualifié Fédéral',
+                category: 'Express Entry - Federal Skilled Worker',
                 crsScore: '468',
                 documents: [
-                    { name: 'Passeport (copie certifiée)', date: '2024-01-01', status: 'verified' },
-                    { name: 'Relevé bancaire (6 mois)', date: '2024-01-01', status: 'warning' },
-                    { name: 'Diplôme universitaire', date: '2024-01-02', status: 'verified' },
-                    { name: 'Test de langue (IELTS)', date: '2023-12-15', status: 'verified' },
-                    { name: 'Certificat de police', date: '2024-01-03', status: 'pending' }
+                    { name: 'Passport (certified copy)', date: '2024-01-01', status: 'verified' },
+                    { name: 'Bank Statement (6 months)', date: '2024-01-01', status: 'warning' },
+                    { name: 'University Diploma', date: '2024-01-02', status: 'verified' },
+                    { name: 'Language Test (IELTS)', date: '2023-12-15', status: 'verified' },
+                    { name: 'Police Certificate', date: '2024-01-03', status: 'pending' }
                 ]
             },
             jean: {
-                indicator: { class: 'compliant', text: '🟢 CONFORME' },
+                indicator: { class: 'compliant', text: '🟢 COMPLIANT' },
                 caseNumber: 'IMM-2024-00891234',
                 fullName: 'Jean-Claude Tremblay',
                 uci: 'UCI-12345678',
                 dob: '1990-07-22',
-                gender: 'Masculin',
-                citizenship: 'Canada 🇨🇦 (Résident temporaire)',
-                residence: 'Canada (Montréal, QC)',
+                gender: 'Male',
+                citizenship: 'Canada 🇨🇦 (Temporary Resident)',
+                residence: 'Canada (Montreal, QC)',
                 passport: 'CA9876543',
                 email: 'jc.tremblay@gmail.com',
-                maritalStatus: 'Célibataire',
+                maritalStatus: 'Single',
                 dependents: '0',
-                proofType: 'Relevé Bancaire (Certifié)',
-                bankName: 'Banque Royale du Canada (RBC)',
+                proofType: 'Bank Statement (Certified)',
+                bankName: 'Royal Bank of Canada (RBC)',
                 accountNumber: '****7890',
-                balance: '35 000 $',
+                balance: '$35,000',
                 balanceClass: 'highlight-success',
                 currency: 'CAD',
                 statementDate: new Date(Date.now() - 15*24*60*60*1000).toISOString().split('T')[0],
                 statementDateClass: 'highlight-success',
-                licoRequired: '20 635 $ CAD (1 personne)',
-                financialNote: '<strong>✓ CONFORME:</strong> Le solde de 35 000 $ <strong>DÉPASSE</strong> le seuil LICO requis (20 635 $). Document récent et valide.',
+                licoRequired: '$20,635 CAD (1 person)',
+                financialNote: '<strong>✓ COMPLIANT:</strong> The balance of $35,000 <strong>EXCEEDS</strong> the required LICO threshold ($20,635). Document is recent and valid.',
                 submissionDate: new Date(Date.now() - 30*24*60*60*1000).toISOString().split('T')[0],
-                category: 'Entrée Express - Travailleur Qualifié Fédéral',
+                category: 'Express Entry - Federal Skilled Worker',
                 crsScore: '512',
                 documents: [
-                    { name: 'Passeport (copie certifiée)', date: '2024-10-15', status: 'verified' },
-                    { name: 'Relevé bancaire (6 mois)', date: '2024-11-01', status: 'verified' },
-                    { name: 'Diplôme universitaire', date: '2024-10-16', status: 'verified' },
-                    { name: 'Évaluation des diplômes (ECA)', date: '2024-10-16', status: 'verified' },
-                    { name: 'Test de langue (IELTS)', date: '2024-09-20', status: 'verified' },
-                    { name: 'Certificat de police', date: '2024-10-20', status: 'verified' }
+                    { name: 'Passport (certified copy)', date: '2024-10-15', status: 'verified' },
+                    { name: 'Bank Statement (6 months)', date: '2024-11-01', status: 'verified' },
+                    { name: 'University Diploma', date: '2024-10-16', status: 'verified' },
+                    { name: 'Educational Credential Assessment (ECA)', date: '2024-10-16', status: 'verified' },
+                    { name: 'Language Test (IELTS)', date: '2024-09-20', status: 'verified' },
+                    { name: 'Police Certificate', date: '2024-10-20', status: 'verified' }
                 ]
             },
             marie: {
-                indicator: { class: 'warning', text: '🟡 AVERTISSEMENT' },
+                indicator: { class: 'warning', text: '🟡 WARNING' },
                 caseNumber: 'IMM-2024-00654987',
                 fullName: 'Marie Dubois',
                 uci: 'UCI-55667788',
                 dob: '1992-03-18',
-                gender: 'Féminin',
-                citizenship: 'Belgique 🇧🇪',
-                residence: 'Belgique',
+                gender: 'Female',
+                citizenship: 'Belgium 🇧🇪',
+                residence: 'Belgium',
                 passport: 'BE7654321',
                 email: 'marie.dubois@outlook.be',
-                maritalStatus: 'Mariée',
-                dependents: '1 (conjoint)',
-                proofType: 'Relevé Bancaire (Certifié)',
-                bankName: 'ING Belgique',
+                maritalStatus: 'Married',
+                dependents: '1 (spouse)',
+                proofType: 'Bank Statement (Certified)',
+                bankName: 'ING Belgium',
                 accountNumber: '****3456',
-                balance: '28 000 $',
+                balance: '$28,000',
                 balanceClass: 'highlight-info',
-                currency: 'CAD (converti de EUR)',
+                currency: 'CAD (converted from EUR)',
                 statementDate: new Date(Date.now() - 45*24*60*60*1000).toISOString().split('T')[0],
                 statementDateClass: '',
-                licoRequired: '35 091 $ CAD (2 personnes)',
-                financialNote: '<strong>⚠️ ATTENTION:</strong> Le solde de 28 000 $ est <strong>INFÉRIEUR</strong> au seuil LICO requis pour 2 personnes (35 091 $). Fonds insuffisants pour le nombre de personnes à charge.',
+                licoRequired: '$35,091 CAD (2 persons)',
+                financialNote: '<strong>⚠️ WARNING:</strong> The balance of $28,000 is <strong>BELOW</strong> the required LICO threshold for 2 persons ($35,091). Insufficient funds for the number of dependents.',
                 submissionDate: new Date(Date.now() - 60*24*60*60*1000).toISOString().split('T')[0],
-                category: 'Entrée Express - Travailleur Qualifié Fédéral',
+                category: 'Express Entry - Federal Skilled Worker',
                 crsScore: '445',
                 documents: [
-                    { name: 'Passeport (copie certifiée)', date: '2024-09-20', status: 'verified' },
-                    { name: 'Relevé bancaire (6 mois)', date: '2024-10-10', status: 'warning' },
-                    { name: 'Diplôme universitaire', date: '2024-09-21', status: 'verified' },
-                    { name: 'Certificat de mariage', date: '2024-09-21', status: 'verified' },
-                    { name: 'Passeport conjoint', date: '2024-09-22', status: 'verified' },
-                    { name: 'Test de langue (TEF)', date: '2024-08-15', status: 'verified' },
-                    { name: 'Certificat de police', date: '2024-09-25', status: 'pending' }
+                    { name: 'Passport (certified copy)', date: '2024-09-20', status: 'verified' },
+                    { name: 'Bank Statement (6 months)', date: '2024-10-10', status: 'warning' },
+                    { name: 'University Diploma', date: '2024-09-21', status: 'verified' },
+                    { name: 'Marriage Certificate', date: '2024-09-21', status: 'verified' },
+                    { name: 'Spouse Passport', date: '2024-09-22', status: 'verified' },
+                    { name: 'Language Test (TEF)', date: '2024-08-15', status: 'verified' },
+                    { name: 'Police Certificate', date: '2024-09-25', status: 'pending' }
                 ]
             },
             ahmed: {
-                indicator: { class: 'critical', text: '🔴 CRITIQUE' },
+                indicator: { class: 'critical', text: '🔴 CRITICAL' },
                 caseNumber: 'IMM-2024-00321654',
                 fullName: 'Ahmed Hassan',
                 uci: 'UCI-11223344',
                 dob: '1988-11-05',
-                gender: 'Masculin',
-                citizenship: 'Égypte 🇪🇬',
-                residence: 'Émirats Arabes Unis',
+                gender: 'Male',
+                citizenship: 'Egypt 🇪🇬',
+                residence: 'United Arab Emirates',
                 passport: 'EG1122334',
                 email: 'ahmed.hassan@email.ae',
-                maritalStatus: 'Marié',
-                dependents: '3 (conjoint + 2 enfants)',
-                proofType: 'Relevé Bancaire (Non certifié)',
+                maritalStatus: 'Married',
+                dependents: '3 (spouse + 2 children)',
+                proofType: 'Bank Statement (Not Certified)',
                 bankName: 'Emirates NBD',
                 accountNumber: '****9012',
-                balance: '15 000 $',
+                balance: '$15,000',
                 balanceClass: 'highlight-danger',
-                currency: 'CAD (converti de AED)',
+                currency: 'CAD (converted from AED)',
                 statementDate: '2024-02-15',
                 statementDateClass: 'highlight-danger',
-                licoRequired: '52 399 $ CAD (4 personnes)',
-                financialNote: '<strong>🚨 CRITIQUE:</strong> Multiples problèmes détectés: 1) Solde de 15 000 $ très inférieur au seuil LICO pour 4 personnes (52 399 $). 2) Relevé non certifié. 3) Document périmé (> 6 mois). Demande à risque élevé.',
+                licoRequired: '$52,399 CAD (4 persons)',
+                financialNote: '<strong>🚨 CRITICAL:</strong> Multiple issues detected: 1) Balance of $15,000 is significantly below LICO threshold for 4 persons ($52,399). 2) Statement is not certified. 3) Document is expired (> 6 months). High-risk application.',
                 submissionDate: '2024-02-20',
-                category: 'Entrée Express - Travailleur Qualifié Fédéral',
+                category: 'Express Entry - Federal Skilled Worker',
                 crsScore: '398',
                 documents: [
-                    { name: 'Passeport (copie)', date: '2024-02-15', status: 'warning' },
-                    { name: 'Relevé bancaire (6 mois)', date: '2024-02-15', status: 'warning' },
-                    { name: 'Diplôme universitaire', date: '2024-02-16', status: 'pending' },
-                    { name: 'Certificat de mariage', date: '2024-02-16', status: 'verified' },
-                    { name: 'Actes de naissance enfants', date: '2024-02-17', status: 'verified' },
-                    { name: 'Test de langue (IELTS)', date: '2023-06-10', status: 'warning' },
-                    { name: 'Certificat de police - Égypte', date: '2024-02-20', status: 'pending' },
-                    { name: 'Certificat de police - EAU', date: '2024-02-20', status: 'pending' }
+                    { name: 'Passport (copy)', date: '2024-02-15', status: 'warning' },
+                    { name: 'Bank Statement (6 months)', date: '2024-02-15', status: 'warning' },
+                    { name: 'University Diploma', date: '2024-02-16', status: 'pending' },
+                    { name: 'Marriage Certificate', date: '2024-02-16', status: 'verified' },
+                    { name: 'Children Birth Certificates', date: '2024-02-17', status: 'verified' },
+                    { name: 'Language Test (IELTS)', date: '2023-06-10', status: 'warning' },
+                    { name: 'Police Certificate - Egypt', date: '2024-02-20', status: 'pending' },
+                    { name: 'Police Certificate - UAE', date: '2024-02-20', status: 'pending' }
                 ]
             }
         };
@@ -754,9 +754,9 @@
 
         function getStatusText(status) {
             switch(status) {
-                case 'verified': return '✓ Vérifié';
-                case 'warning': return '⚠ À vérifier';
-                case 'pending': return '⏳ En attente';
+                case 'verified': return '✓ Verified';
+                case 'warning': return '⚠ To Review';
+                case 'pending': return '⏳ Pending';
                 default: return status;
             }
         }

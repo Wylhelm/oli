@@ -75,7 +75,7 @@
                 <span style="font-size: 18px; line-height: 1;">${colors.icon}</span>
                 <div>
                     <div style="font-weight: 600; margin-bottom: 4px; color: ${status === 'CRITIQUE' ? '#FCA5A5' : status === 'AVERTISSEMENT' ? '#FCD34D' : '#6EE7B7'};">
-                        ${status === 'CRITIQUE' ? 'Alerte Critique' : status === 'AVERTISSEMENT' ? 'Avertissement' : 'Conforme'}
+                        ${status === 'CRITIQUE' ? 'Critical Alert' : status === 'AVERTISSEMENT' ? 'Warning' : 'Compliant'}
                     </div>
                     <div style="color: #CBD5E1;">${content}</div>
                 </div>
@@ -198,7 +198,7 @@
             span.className = 'oli-highlight';
             span.dataset.oliOriginal = textNode.nodeValue;
             span.dataset.oliStatus = status;
-            span.dataset.oliMessage = message || `Élément signalé par OLI`;
+            span.dataset.oliMessage = message || `Element flagged by OLI`;
             
             span.style.cssText = `
                 display: inline;
@@ -295,7 +295,7 @@
         
         indicator.innerHTML = `
             <span style="font-size: 16px;">🛡️</span>
-            <span>OLI: ${overallStatus === 'CRITIQUE' ? 'Alertes détectées' : overallStatus === 'AVERTISSEMENT' ? 'Points d\'attention' : 'Conforme'}</span>
+            <span>OLI: ${overallStatus === 'CRITIQUE' ? 'Alerts detected' : overallStatus === 'AVERTISSEMENT' ? 'Points of attention' : 'Compliant'}</span>
         `;
         
         // Add animation keyframes
@@ -478,7 +478,7 @@
                 span.className = 'oli-highlight oli-focus-highlight';
                 span.dataset.oliOriginal = node.nodeValue;
                 span.dataset.oliStatus = status;
-                span.dataset.oliMessage = message || 'Élément signalé par OLI';
+                span.dataset.oliMessage = message || 'Element flagged by OLI';
                 
                 span.style.cssText = `
                     display: inline;
@@ -554,7 +554,7 @@
         // Add highlight class and styles
         element.classList.add('oli-highlight', 'oli-focus-highlight');
         element.dataset.oliStatus = status;
-        element.dataset.oliMessage = message || 'Élément signalé par OLI';
+        element.dataset.oliMessage = message || 'Element flagged by OLI';
         
         // Store original styles
         const originalStyle = element.getAttribute('style') || '';
@@ -690,7 +690,7 @@
             
             if (highlights && highlights.length > 0) {
                 highlights.forEach(h => {
-                    highlightText(h.text, h.status, `Élément à risque détecté`);
+                    highlightText(h.text, h.status, `Risk element detected`);
                 });
             }
             

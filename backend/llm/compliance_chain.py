@@ -82,15 +82,7 @@ class ComplianceChain:
             print("[OLI ComplianceChain] Using basic regex anonymization")
     
     def _anonymize_document(self, document_text: str) -> str:
-        """
-        Anonymize document using Presidio or fallback
-        
-        Args:
-            document_text: Text to anonymize
-            
-        Returns:
-            Anonymized text
-        """
+        """Anonymize document using Presidio or fallback"""
         if self.anonymizer:
             try:
                 return self.anonymizer.anonymize(document_text)
@@ -106,13 +98,6 @@ class ComplianceChain:
     ) -> ComplianceAnalysis:
         """
         Run full compliance analysis (synchronous)
-        
-        Args:
-            document_text: The document text to analyze
-            url: Optional URL of the document source
-        
-        Returns:
-            ComplianceAnalysis with all checks and recommendations
         """
         # 1. Anonymize with Presidio (or fallback)
         anonymized = self._anonymize_document(document_text)
@@ -143,6 +128,7 @@ class ComplianceChain:
                 {"role": "system", "content": COMPLIANCE_SYSTEM_PROMPT},
                 {"role": "user", "content": prompt}
             ]
+            
             response = self.llm.chat(
                 messages=messages,
                 temperature=0.1,
@@ -198,6 +184,7 @@ class ComplianceChain:
                 {"role": "system", "content": COMPLIANCE_SYSTEM_PROMPT},
                 {"role": "user", "content": prompt}
             ]
+            
             response = await self.llm.chat_async(
                 messages=messages,
                 temperature=0.1,
@@ -223,13 +210,6 @@ class ComplianceChain:
     ) -> ComplianceCheck:
         """
         Run a single compliance check with LLM
-        
-        Args:
-            document_text: The document text
-            check_type: LICO, DOCUMENT_VALIDITY, IDENTITY, or PROOF_OF_FUNDS
-        
-        Returns:
-            Single ComplianceCheck result
         """
         # Get specific RAG context
         rag_result = self.retriever.retrieve_for_check(check_type, document_text)
@@ -262,12 +242,25 @@ class ComplianceChain:
                 id=f"{check_type}_001",
                 name=check_type,
                 status="AVERTISSEMENT",
-                message=f"Analyse LLM non disponible: {str(e)}",
+                message=f"LLM analysis unavailable: {str(e)}",
                 reference="N/A",
                 url="",
-                recommendation="Vérification manuelle requise",
+                recommendation="Manual verification required",
                 confidence=0.0
             )
+    
+    def _map_status(self, status: str) -> str:
+        """Map English status values to internal French values"""
+        status_map = {
+            "COMPLIANT": "CONFORME",
+            "WARNING": "AVERTISSEMENT", 
+            "CRITICAL": "CRITIQUE",
+            # Also accept French values directly
+            "CONFORME": "CONFORME",
+            "AVERTISSEMENT": "AVERTISSEMENT",
+            "CRITIQUE": "CRITIQUE"
+        }
+        return status_map.get(status.upper(), "AVERTISSEMENT")
     
     def _parse_llm_response(self, response: str) -> ComplianceAnalysis:
         """Parse LLM JSON response into ComplianceAnalysis"""
@@ -284,7 +277,7 @@ class ComplianceChain:
                 checks.append(ComplianceCheck(
                     id=check_data.get("id", "UNKNOWN"),
                     name=check_data.get("name", "Unknown Check"),
-                    status=check_data.get("status", "AVERTISSEMENT"),
+                    status=self._map_status(check_data.get("status", "WARNING")),
                     message=check_data.get("message", ""),
                     reference=check_data.get("reference", ""),
                     url=check_data.get("url", ""),
@@ -294,11 +287,11 @@ class ComplianceChain:
                 ))
             
             return ComplianceAnalysis(
-                overall_status=data.get("overall_status", "AVERTISSEMENT"),
+                overall_status=self._map_status(data.get("overall_status", "WARNING")),
                 risk_score=data.get("risk_score", 50),
                 completeness_score=data.get("completeness_score", 50),
                 checks=checks,
-                summary=data.get("summary", "Analyse complétée")
+                summary=data.get("summary", "Analysis completed")
             )
             
         except (json.JSONDecodeError, ValueError) as e:
@@ -309,7 +302,7 @@ class ComplianceChain:
                 risk_score=50,
                 completeness_score=50,
                 checks=[],
-                summary="Analyse LLM non parseable, vérification manuelle requise"
+                summary="LLM analysis could not be parsed, manual verification required"
             )
     
     def _parse_single_check(self, response: str, check_type: str) -> ComplianceCheck:
@@ -339,10 +332,10 @@ class ComplianceChain:
                 id=f"{check_type}_001",
                 name=check_type,
                 status="AVERTISSEMENT",
-                message=f"Erreur de parsing: {str(e)}",
+                message=f"Parsing error: {str(e)}",
                 reference="",
                 url="",
-                recommendation="Vérification manuelle requise",
+                recommendation="Manual verification required",
                 confidence=0.0
             )
     
@@ -388,29 +381,29 @@ class ComplianceChain:
         income_match = re.search(r"(\d[\d\s]*)\s?\$", document_text)
         if income_match:
             income = int(income_match.group(1).replace(" ", ""))
-            threshold = 20635
+            threshold = 14690
             
             if income < threshold:
                 checks.append(ComplianceCheck(
                     id="LICO_001",
-                    name="Vérification LICO",
+                    name="LICO Financial Threshold",
                     status="CRITIQUE",
-                    message=f"Solde insuffisant ({income:,}$ < {threshold:,}$)",
-                    reference="RIPR R179(b)",
+                    message=f"Insufficient balance ({income:,} CAD < {threshold:,} CAD)",
+                    reference="IRPR R179(b)",
                     url="https://laws-lois.justice.gc.ca/eng/regulations/SOR-2002-227/",
-                    recommendation="Demander des preuves de fonds supplémentaires",
+                    recommendation="Request additional proof of funds",
                     highlight_text=income_match.group(0),
                     confidence=0.8
                 ))
             else:
                 checks.append(ComplianceCheck(
                     id="LICO_001",
-                    name="Vérification LICO",
+                    name="LICO Financial Threshold",
                     status="CONFORME",
-                    message=f"Seuil financier respecté ({income:,}$ >= {threshold:,}$)",
-                    reference="RIPR R179(b)",
+                    message=f"Financial threshold met ({income:,} CAD >= {threshold:,} CAD)",
+                    reference="IRPR R179(b)",
                     url="https://laws-lois.justice.gc.ca/eng/regulations/SOR-2002-227/",
-                    recommendation="Aucune action requise",
+                    recommendation="No action required",
                     confidence=0.8
                 ))
         
@@ -423,7 +416,7 @@ class ComplianceChain:
             risk_score=60 if has_critique else (30 if has_warning else 10),
             completeness_score=len([c for c in checks if c.status == "CONFORME"]) * 25,
             checks=checks,
-            summary="Analyse par règles (LLM non disponible)",
+            summary="Rule-based analysis (LLM unavailable)",
             sources=sources,
             anonymized_text=self._basic_anonymize(document_text)
         )
@@ -433,4 +426,3 @@ class ComplianceChain:
 def create_compliance_chain(retriever: ContextualRetriever) -> ComplianceChain:
     """Create a compliance chain with default settings"""
     return ComplianceChain(retriever=retriever)
-

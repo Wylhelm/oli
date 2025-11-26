@@ -1,147 +1,161 @@
 """
 OLI Prompt Templates
 Structured prompts for compliance analysis with RAG context
+All prompts enforce English-only output
 """
 
 # System prompt for compliance analysis
-COMPLIANCE_SYSTEM_PROMPT = """Tu es OLI (Overlay Legal Intelligence), un assistant d'analyse de conformité réglementaire pour les agents de la fonction publique canadienne.
+COMPLIANCE_SYSTEM_PROMPT = """You are OLI, an English-speaking compliance analysis assistant for Canadian immigration.
 
-## Ton rôle:
-- Analyser les documents soumis pour détecter les non-conformités avec la législation canadienne
-- Croiser les informations du document avec le contexte légal fourni
-- Fournir des recommandations claires et actionnables
-- Toujours citer les références légales exactes
+IMPORTANT: You ONLY speak English. All your responses must be in English.
 
-## Règles importantes:
-1. Base tes analyses UNIQUEMENT sur le contexte légal fourni
-2. Cite les articles de loi spécifiques (ex: R179, R52, R76)
-3. Fournis les URLs vers les sources officielles quand disponibles
-4. Sois précis sur les seuils numériques (LICO, délais, etc.)
-5. Donne un niveau de confiance honnête pour chaque vérification
+Your role:
+- Analyze immigration documents for compliance with Canadian law
+- Output structured JSON analysis results
+- Write all messages, summaries, and recommendations in English
 
-## Format de réponse:
-Tu dois répondre en JSON valide avec la structure suivante:
-{
-  "checks": [
-    {
-      "id": "CHECK_ID",
-      "name": "Nom du contrôle",
-      "status": "CONFORME|AVERTISSEMENT|CRITIQUE",
-      "message": "Description détaillée du résultat",
-      "reference": "Article de loi (ex: RIPR R179(b))",
-      "url": "URL vers la source officielle",
-      "recommendation": "Action recommandée",
-      "highlight_text": "Texte exact à surligner dans le document (ou null)",
-      "confidence": 0.95
-    }
-  ],
-  "summary": "Résumé en une phrase du statut global",
-  "risk_score": 0-100,
-  "completeness_score": 0-100,
-  "overall_status": "CONFORME|AVERTISSEMENT|CRITIQUE"
-}"""
+Check names to use:
+- "LICO Financial Threshold"
+- "Document Validity"
+- "Identity Verification"
+- "Proof of Funds Type"
+
+Status values (use these exact English words):
+- "COMPLIANT" = passes the check
+- "WARNING" = needs attention
+- "CRITICAL" = fails the check
+
+CRITICAL RULE for highlight_text:
+- highlight_text MUST be an EXACT copy of text from the document
+- Copy the text exactly as it appears, including symbols like $ and commas
+- Examples: "$5,000", "$35,000", "2024-01-15", "Jean Tremblay"
+- If no specific text to highlight, use null
+
+Example English messages:
+- "The balance of $5,000 is below the required LICO threshold."
+- "Documents are dated within the 6-month validity period."
+- "All required identity information is present."
+- "Request updated bank statements dated within 6 months." """
 
 
 # Template for compliance analysis with RAG context
-COMPLIANCE_ANALYSIS_TEMPLATE = """## Document à analyser:
+COMPLIANCE_ANALYSIS_TEMPLATE = """You are analyzing a Canadian immigration document. Write your analysis in English.
+
+=== DOCUMENT TEXT ===
 {document_text}
+=== END DOCUMENT ===
 
-## Contexte légal pertinent (extrait de la législation canadienne):
+=== LEGAL REFERENCE ===
 {legal_context}
+=== END LEGAL REFERENCE ===
 
-## Sources légales disponibles:
-{sources}
+SOURCES: {sources}
 
-## Instructions:
-1. Analyse le document ci-dessus en utilisant le contexte légal fourni
-2. Vérifie les points suivants:
-   - LICO: Les fonds disponibles respectent-ils le seuil minimum requis?
-   - Validité des documents: Les dates sont-elles conformes (moins de 6 mois)?
-   - Identité: Les informations d'identité sont-elles complètes?
-   - Preuve de fonds: Le type de document est-il acceptable?
-3. Pour chaque vérification, cite la référence légale exacte du contexte fourni
-4. Retourne ta réponse en JSON valide
+ANALYSIS TASKS:
+1. LICO Financial Threshold - Check if funds meet minimum ($14,690+ for single applicant)
+2. Document Validity - Check if documents are dated within last 6 months
+3. Identity Verification - Check if identity information is complete
+4. Proof of Funds Type - Check if document type is acceptable (bank statement, etc.)
 
-## Réponse (JSON uniquement):"""
+IMPORTANT - highlight_text rules:
+- MUST be an EXACT copy-paste from the DOCUMENT TEXT above
+- Include the exact formatting: "$5,000" not "5000" or "5,000 CAD"
+- For LICO check: use the balance amount like "$5,000" or "$35,000"
+- For Document Validity: use the date like "2024-01-15" or "January 15, 2024"
+- For Identity: use the name exactly as written
+- If unsure, use null
+
+OUTPUT FORMAT (JSON with English text):
+{{
+  "checks": [
+    {{"id": "LICO_001", "name": "LICO Financial Threshold", "status": "COMPLIANT|WARNING|CRITICAL", "message": "English description", "reference": "IRPR R179", "url": "https://laws-lois.justice.gc.ca/eng/regulations/SOR-2002-227/", "recommendation": "English recommendation", "highlight_text": "$5,000", "confidence": 0.95}},
+    {{"id": "DOC_001", "name": "Document Validity", "status": "...", "message": "...", "reference": "IRPR Section 44", "url": "https://laws-lois.justice.gc.ca/eng/regulations/SOR-2002-227/", "recommendation": "...", "highlight_text": "2024-01-15", "confidence": 0.95}},
+    {{"id": "ID_001", "name": "Identity Verification", "status": "...", "message": "...", "reference": "IRPA Section 88", "url": "https://laws-lois.justice.gc.ca/eng/acts/I-2.5/", "recommendation": "...", "highlight_text": null, "confidence": 0.95}},
+    {{"id": "POF_001", "name": "Proof of Funds Type", "status": "...", "message": "...", "reference": "IRPR R76", "url": "https://laws-lois.justice.gc.ca/eng/regulations/SOR-2002-227/", "recommendation": "...", "highlight_text": null, "confidence": 0.95}}
+  ],
+  "summary": "One sentence English summary",
+  "risk_score": 0-100,
+  "completeness_score": 0-100,
+  "overall_status": "COMPLIANT|WARNING|CRITICAL"
+}}
+
+Your JSON response:"""
 
 
 # Template for specific check types
 CHECK_SPECIFIC_TEMPLATES = {
-    "LICO": """## Vérification LICO (Low Income Cut-Off)
+    "LICO": """Analyze this document for LICO compliance. Respond in English JSON.
 
-Document:
+DOCUMENT:
 {document_text}
 
-Contexte légal sur les seuils LICO:
+LEGAL CONTEXT:
 {legal_context}
 
-Instructions:
-1. Identifie le montant des fonds mentionné dans le document
-2. Compare avec les seuils LICO du contexte légal
-3. Tiens compte de la taille de la famille si mentionnée
-4. Cite l'article exact (R179, etc.)
+Check if funds meet LICO threshold ($14,690 for single applicant).
+IMPORTANT: highlight_text must be EXACT text from document (e.g. "$5,000" or "$35,000")
 
-Réponds en JSON:
-{{"check": {{"id": "LICO_001", "name": "Vérification LICO", "status": "...", "message": "...", "reference": "...", "url": "...", "recommendation": "...", "highlight_text": "...", "confidence": 0.0}}}}""",
+JSON format:
+{{"check": {{"id": "LICO_001", "name": "LICO Financial Threshold", "status": "COMPLIANT|WARNING|CRITICAL", "message": "English description", "reference": "IRPR R179", "url": "https://laws-lois.justice.gc.ca/eng/regulations/SOR-2002-227/", "recommendation": "English recommendation", "highlight_text": "$5,000", "confidence": 0.95}}}}
 
-    "DOCUMENT_VALIDITY": """## Vérification de la validité des documents
+Your response:""",
 
-Document:
+    "DOCUMENT_VALIDITY": """Analyze this document for validity. Respond in English JSON.
+
+DOCUMENT:
 {document_text}
 
-Contexte légal sur la validité:
+LEGAL CONTEXT:
 {legal_context}
 
-Instructions:
-1. Identifie les dates mentionnées dans le document
-2. Vérifie si les documents ont moins de 6 mois
-3. Cite les articles pertinents
+Check if documents are within 6-month validity period.
+IMPORTANT: highlight_text must be EXACT date from document (e.g. "2024-01-15")
 
-Réponds en JSON:
-{{"check": {{"id": "DOC_001", "name": "Validité des documents", "status": "...", "message": "...", "reference": "...", "url": "...", "recommendation": "...", "highlight_text": "...", "confidence": 0.0}}}}""",
+JSON format:
+{{"check": {{"id": "DOC_001", "name": "Document Validity", "status": "COMPLIANT|WARNING|CRITICAL", "message": "English description", "reference": "IRPR Section 44", "url": "https://laws-lois.justice.gc.ca/eng/regulations/SOR-2002-227/", "recommendation": "English recommendation", "highlight_text": "2024-01-15", "confidence": 0.95}}}}
 
-    "IDENTITY": """## Vérification d'identité
+Your response:""",
 
-Document:
+    "IDENTITY": """Analyze this document for identity completeness. Respond in English JSON.
+
+DOCUMENT:
 {document_text}
 
-Contexte légal sur l'identité:
+LEGAL CONTEXT:
 {legal_context}
 
-Instructions:
-1. Vérifie la présence des informations d'identité requises
-2. Identifie les éléments manquants
-3. Cite les articles R52 et connexes
+Check if required identity information is present (name, DOB, citizenship, passport).
 
-Réponds en JSON:
-{{"check": {{"id": "ID_001", "name": "Vérification d'identité", "status": "...", "message": "...", "reference": "...", "url": "...", "recommendation": "...", "highlight_text": null, "confidence": 0.0}}}}""",
+JSON format:
+{{"check": {{"id": "ID_001", "name": "Identity Verification", "status": "COMPLIANT|WARNING|CRITICAL", "message": "English description", "reference": "IRPA Section 88", "url": "https://laws-lois.justice.gc.ca/eng/acts/I-2.5/", "recommendation": "English recommendation", "highlight_text": null, "confidence": 0.95}}}}
 
-    "PROOF_OF_FUNDS": """## Vérification de la preuve de fonds
+Your response:""",
 
-Document:
+    "PROOF_OF_FUNDS": """Analyze this document for proof of funds type. Respond in English JSON.
+
+DOCUMENT:
 {document_text}
 
-Contexte légal sur les preuves de fonds:
+LEGAL CONTEXT:
 {legal_context}
 
-Instructions:
-1. Identifie le type de preuve de fonds (relevé bancaire, etc.)
-2. Vérifie si c'est un type accepté selon le contexte légal
-3. Cite l'article R76 et connexes
+Check if document is an acceptable proof of funds (certified bank statement, etc.).
 
-Réponds en JSON:
-{{"check": {{"id": "POF_001", "name": "Preuve de fonds", "status": "...", "message": "...", "reference": "...", "url": "...", "recommendation": "...", "highlight_text": null, "confidence": 0.0}}}}"""
+JSON format:
+{{"check": {{"id": "POF_001", "name": "Proof of Funds Type", "status": "COMPLIANT|WARNING|CRITICAL", "message": "English description", "reference": "IRPR R76", "url": "https://laws-lois.justice.gc.ca/eng/regulations/SOR-2002-227/", "recommendation": "English recommendation", "highlight_text": null, "confidence": 0.95}}}}
+
+Your response:"""
 }
 
 
 def format_sources(sources: list[dict]) -> str:
     """Format sources list for prompt"""
     if not sources:
-        return "Aucune source spécifique disponible"
+        return "No specific source available"
     
     lines = []
     for i, src in enumerate(sources, 1):
-        title = src.get("title", "Document inconnu")
+        title = src.get("title", "Unknown document")
         url = src.get("url", "")
         doc_type = src.get("doc_type", "")
         lines.append(f"{i}. {title} ({doc_type})")
@@ -158,8 +172,8 @@ def build_analysis_prompt(
 ) -> str:
     """Build the full analysis prompt"""
     return COMPLIANCE_ANALYSIS_TEMPLATE.format(
-        document_text=document_text[:3000],  # Limit document size
-        legal_context=legal_context[:4000],  # Limit context size
+        document_text=document_text[:3000],
+        legal_context=legal_context[:4000],
         sources=format_sources(sources)
     )
 
@@ -178,4 +192,3 @@ def build_check_prompt(
         document_text=document_text[:2000],
         legal_context=legal_context[:3000]
     )
-

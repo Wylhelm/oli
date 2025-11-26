@@ -261,21 +261,21 @@ class PresidioAnonymizer:
     
     # Default replacement operators
     DEFAULT_OPERATORS = {
-        "PERSON": "<PERSONNE>",
-        "PHONE_NUMBER": "<TELEPHONE>",
-        "EMAIL_ADDRESS": "<COURRIEL>",
-        "CREDIT_CARD": "<CARTE_CREDIT>",
+        "PERSON": "<PERSON>",
+        "PHONE_NUMBER": "<PHONE>",
+        "EMAIL_ADDRESS": "<EMAIL>",
+        "CREDIT_CARD": "<CREDIT_CARD>",
         "DATE_TIME": "<DATE>",
-        "LOCATION": "<LIEU>",
+        "LOCATION": "<LOCATION>",
         "IBAN_CODE": "<IBAN>",
-        "IP_ADDRESS": "<ADRESSE_IP>",
+        "IP_ADDRESS": "<IP_ADDRESS>",
         "URL": "<URL>",
         # Canadian-specific
-        "CA_SIN": "<NAS>",
-        "CA_POSTAL_CODE": "<CODE_POSTAL>",
+        "CA_SIN": "<SIN>",
+        "CA_POSTAL_CODE": "<POSTAL_CODE>",
         "CA_UCI": "<UCI>",
-        "CA_PASSPORT": "<PASSEPORT>",
-        "BANK_ACCOUNT": "<COMPTE_BANCAIRE>",
+        "CA_PASSPORT": "<PASSPORT>",
+        "BANK_ACCOUNT": "<BANK_ACCOUNT>",
     }
     
     def __init__(
@@ -544,21 +544,21 @@ class PresidioAnonymizer:
         # Order matters: more specific patterns should come first
         patterns = [
             # Canadian SIN (must be before generic numbers)
-            (r"\b\d{3}[-\s]\d{3}[-\s]\d{3}\b", "CA_SIN", "<NAS>"),
+            (r"\b\d{3}[-\s]\d{3}[-\s]\d{3}\b", "CA_SIN", "<SIN>"),
             # UCI
             (r"\bUCI[-\s]?\d{8,10}\b", "CA_UCI", "<UCI>"),
             # Canadian postal code
-            (r"\b[A-Za-z]\d[A-Za-z][-\s]?\d[A-Za-z]\d\b", "CA_POSTAL_CODE", "<CODE_POSTAL>"),
+            (r"\b[A-Za-z]\d[A-Za-z][-\s]?\d[A-Za-z]\d\b", "CA_POSTAL_CODE", "<POSTAL_CODE>"),
             # Email (before phone to avoid conflicts)
-            (r"\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b", "EMAIL_ADDRESS", "<COURRIEL>"),
+            (r"\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b", "EMAIL_ADDRESS", "<EMAIL>"),
             # Phone - Canadian format with country code (full match)
-            (r"\+1[-\s]?\(?\d{3}\)?[-\s]?\d{3}[-\s]?\d{4}\b", "PHONE_NUMBER", "<TELEPHONE>"),
+            (r"\+1[-\s]?\(?\d{3}\)?[-\s]?\d{3}[-\s]?\d{4}\b", "PHONE_NUMBER", "<PHONE>"),
             # Phone - standard format without country code
-            (r"\(?\d{3}\)?[-\s]?\d{3}[-\s]?\d{4}\b", "PHONE_NUMBER", "<TELEPHONE>"),
+            (r"\(?\d{3}\)?[-\s]?\d{3}[-\s]?\d{4}\b", "PHONE_NUMBER", "<PHONE>"),
             # Credit card
-            (r"\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b", "CREDIT_CARD", "<CARTE_CREDIT>"),
+            (r"\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b", "CREDIT_CARD", "<CREDIT_CARD>"),
             # Canadian Passport (2 letters + 6 digits)
-            (r"\b[A-Z]{2}\d{6}\b", "CA_PASSPORT", "<PASSEPORT>"),
+            (r"\b[A-Z]{2}\d{6}\b", "CA_PASSPORT", "<PASSPORT>"),
         ]
         
         # First pass: detect and replace standard patterns
@@ -582,13 +582,14 @@ class PresidioAnonymizer:
         # Use [^\S\n] for spaces that are NOT newlines to avoid capturing across lines
         name_patterns = [
             # "Nom complet :" or "Nom :" followed by name (stops at newline)
-            (r"(Nom\s+complet\s*:\s*)([A-Z][a-zéèêëàâäùûüôöîïç]+(?:[^\S\n]+[A-Z][a-zéèêëàâäùûüôöîïç]+)*)", r"\1<PERSONNE>"),
-            (r"(Nom\s*:\s*)([A-Z][a-zéèêëàâäùûüôöîïç]+(?:[^\S\n]+[A-Z][a-zéèêëàâäùûüôöîïç]+)*)", r"\1<PERSONNE>"),
+            (r"(Nom\s+complet\s*:\s*)([A-Z][a-zéèêëàâäùûüôöîïç]+(?:[^\S\n]+[A-Z][a-zéèêëàâäùûüôöîïç]+)*)", r"\1<PERSON>"),
+            (r"(Nom\s*:\s*)([A-Z][a-zéèêëàâäùûüôöîïç]+(?:[^\S\n]+[A-Z][a-zéèêëàâäùûüôöîïç]+)*)", r"\1<PERSON>"),
             # "Demandeur :" followed by name
-            (r"(Demandeur\s*:\s*)([A-Z][a-zéèêëàâäùûüôöîïç]+(?:[^\S\n]+[A-Z][a-zéèêëàâäùûüôöîïç]+)*)", r"\1<PERSONNE>"),
-            # "Name:" or "Applicant:" followed by name
-            (r"(Name\s*:\s*)([A-Z][a-z]+(?:[^\S\n]+[A-Z][a-z]+)*)", r"\1<PERSONNE>"),
-            (r"(Applicant\s*:\s*)([A-Z][a-z]+(?:[^\S\n]+[A-Z][a-z]+)*)", r"\1<PERSONNE>"),
+            (r"(Demandeur\s*:\s*)([A-Z][a-zéèêëàâäùûüôöîïç]+(?:[^\S\n]+[A-Z][a-zéèêëàâäùûüôöîïç]+)*)", r"\1<PERSON>"),
+            # "Name:" or "Applicant:" or "Full Name:" followed by name
+            (r"(Full\s+Name\s*:\s*)([A-Z][a-z]+(?:[^\S\n]+[A-Z][a-z]+)*)", r"\1<PERSON>"),
+            (r"(Name\s*:\s*)([A-Z][a-z]+(?:[^\S\n]+[A-Z][a-z]+)*)", r"\1<PERSON>"),
+            (r"(Applicant\s*:\s*)([A-Z][a-z]+(?:[^\S\n]+[A-Z][a-z]+)*)", r"\1<PERSON>"),
         ]
         
         for pattern, replacement in name_patterns:

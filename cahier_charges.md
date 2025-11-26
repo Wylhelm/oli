@@ -1,129 +1,129 @@
-# CAHIER DES CHARGES
+# SPECIFICATIONS
 OLI — Overlay Legal Intelligence
-Solution d'assistance décisionnelle pour la conformité réglementaire
-Défi Grand Défi IAgouv du G7 2025
-Problématique Problématique 2 — Lois, politiques et réglementations
-Équipe Équipe G7
-Date limite 1er décembre 2025, 15h00 HE
-Livrable final Vidéo de démonstration générée par IA (Google AI Studio)
- 
-1.	Contexte et énoncé de la problématique
-1.1 Énoncé officiel (Statement 2)
-« The public service works with many laws, policies, and regulations that are complex to navigate for clients and employees. Design a solution to streamline the interpretation and application of rules to increase consistency and compliance, and to reduce the cognitive load of employees. »
-1.2 Analyse du problème
-Les employés de la fonction publique font face quotidiennement à une charge cognitive excessive causée par la complexité des cadres légaux. Cette situation engendre plusieurs défis critiques :
-• Fragmentation de l'information : lois, règlements et politiques dispersés dans de multiples sources
-• Risque d'erreur humaine : interprétations incohérentes des règles applicables
-• Temps de traitement prolongé : vérifications manuelles chronophages
-• Manque de traçabilité : difficulté à justifier les décisions par des références légales précises
-• Systèmes legacy : impossibilité de modifier les backends des applications gouvernementales existantes
-2.	Présentation de la solution proposée
-2.1 Vision globale
-OLI (Overlay Legal Intelligence) est une solution d'assistance décisionnelle inspirée de Grammarly, conçue comme une surcouche de réalité augmentée administrative. OLI s'intègre directement dans le navigateur des employés sous forme d'extension et analyse en temps réel les documents et formulaires pour identifier automatiquement les non-conformités réglementaires.
-2.2 Concept clé : l'approche « Man-in-the-Browser »
-L'architecture repose sur une injection DOM non-invasive qui permet de moderniser instantanément les systèmes gouvernementaux existants (legacy) sans modifier une seule ligne de code backend. Cette approche garantit un déploiement rapide, universel et interopérable.
-3.	Objectifs du projet
-3.1 Objectif principal
-Réduire la charge cognitive des employés de la fonction publique en automatisant l'identification des non-conformités et en fournissant des références légales contextuelles instantanées.
-3.2 Objectifs spécifiques
-4.	Augmenter la cohérence : standardiser l'interprétation des règles à travers tous les agents et départements
-5.	Améliorer la conformité : réduire les erreurs de traitement par détection proactive des anomalies
-6.	Accélérer le traitement : diminuer le temps de vérification manuelle de 40% minimum
-7.	Assurer la traçabilité : lier chaque décision à sa source juridique officielle avec URL cliquable
-8.	Protéger les données : garantir l'anonymisation complète avant tout traitement IA
- 
-9.	Fonctionnalités attendues
-4.1 Fonctionnalités principales
-F1 — Scanner d'interface par injection DOM
-• Extension navigateur compatible Chrome/Edge/Firefox
-• Lecture automatique des formulaires, champs et documents PDF ouverts
-• Fonctionnement sur tout système legacy sans modification backend
-F2 — Moteur de conformité RAG (Retrieval-Augmented Generation)
-• Connexion à une base vectorielle contenant les lois canadiennes (ex: RIPR, LICO 2025)
-• Analyse contextuelle via Azure OpenAI ou modèle IA équivalent hébergé au Canada
-• Croisement en temps réel des données extraites avec les seuils et critères réglementaires
-F3 — Système de code couleur (Zones de conformité)
-Zone Signification Exemple
-🟢 VERTE Conformité respectée Fonds suffisants, lettres conformes
-🟡 JAUNE Avertissement Éléments manquants, incohérence de dates
-🔴 ROUGE Risque critique Documents frauduleux, seuils non respectés
-F4 — Panneau latéral d'analyse contextuelle
-• Barre latérale flottante avec synthèse du dossier
-• Affichage du pourcentage de complétude et niveau de risque
-• Liste des points validés et anomalies détectées
-• Recommandations IA avec actions suggérées (ex: « Demander co-signataire »)
-F5 — Liens cliquables vers sources officielles
-• Insertion automatique d'URLs vers Justice.gc.ca et sources légales officielles
-• Citation de l'article ou règlement applicable (ex: « R179(b) »)
-• Stockage des références dans la base vectorielle pour traçabilité
-4.2 Fonctionnalités de sécurité
-F6 — Anonymisation des données (Microsoft Presidio)
-• Expurgation automatique des données personnelles avant traitement IA
-• Remplacement par abstractions logiques (ex: « <ACCOUNT_ID> »)
-• Conformité avec la Loi sur la protection des renseignements personnels
- 
-5. Contraintes techniques et organisationnelles
-5.1 Contraintes techniques
-Contrainte Spécification
-Architecture Extension navigateur (overlay) ou assistant IA intégré — aucun accès backend requis
-Hébergement IA Azure OpenAI (région Canada) ou infrastructure gouvernementale équivalente
-Base de données Base vectorielle contenant la législation canadienne (à construire ou existante)
-Sécurité Anonymisation obligatoire via Microsoft Presidio avant envoi au LLM
-Interopérabilité Compatible avec systèmes legacy via injection DOM (aucune intégration API requise)
-Langues Bilingue (français/anglais) — multilingue en extension
-5.2 Contraintes organisationnelles
-• Délai : soumission avant le 1er décembre 2025, 15h00 HE
-• Équipe : maximum 4 membres
-• Format de soumission : portail Impact Canada + vidéo de démonstration
-• Conformité éthique : principes d'IA responsable du G7 (équité, transparence, vie privée)
-• MVP vidéo : démonstration générée par prompts structurés sur Google AI Studio (Gemini)
-6. Utilisateurs visés
-6.1 Utilisateurs primaires
-• Agents de la fonction publique : traitant des demandes soumises à des cadres réglementaires (immigration, fiscalité, santé, véhicules, etc.)
-• Superviseurs : validant les décisions et ayant besoin de traçabilité juridique
-6.2 Utilisateurs secondaires
-• Citoyens et entreprises : via une version publique de l'overlay sur les sites gouvernementaux, les aidant à pré-valider leurs demandes
-• Équipes juridiques gouvernementales : pour mise à jour de la base de connaissances
-6.3 Persona illustratif
-Sophie, agente d'immigration à IRCC, traite 40 dossiers par jour. Elle passe 30% de son temps à vérifier manuellement les seuils financiers LICO et la conformité documentaire. Avec OLI, l'analyse est automatique : elle ouvre le relevé bancaire PDF du demandeur, et l'overlay lui indique instantanément que le solde moyen (5 000 $) est inférieur au seuil requis (20 635 $), avec référence à l'article R179(b) cliquable.
- 
-7. Critères de réussite
-Les critères suivants sont alignés sur les quatre piliers d'évaluation officiels du Grand Défi IAgouv G7 :
-7.1 Impact et bien social (Critère G7 #1)
-1.	Réduction mesurable de la charge cognitive des agents (cible : -40% temps de vérification)
-2.	Amélioration de la cohérence des décisions entre agents traitant des dossiers similaires
-3.	Respect des principes d'IA responsable : équité, vie privée, accessibilité
-4.	Bénéfice pour les citoyens via une meilleure qualité et rapidité de service
-7.2 Interopérabilité (Critère G7 #2)
-5.	Fonctionne sur tout système existant via injection DOM (aucune modification backend)
-6.	Transférable entre ministères et départements (immigration, finances, santé, etc.)
-7.	Applicable aux autres pays du G7 avec adaptation de la base législative
-8.	Compatible avec les ressources de données ouvertes fournies par le défi
-7.3 Explicabilité (Critère G7 #3)
-9.	Chaque détection est accompagnée d'une justification en langage clair
-10.	Référence juridique précise avec URL officielle cliquable (Justice.gc.ca)
-11.	Système de code couleur intuitif réduisant l'ambiguïté (vert/jaune/rouge)
-12.	Traçabilité complète des décisions pour audit et reddition de comptes
-7.4 Évolutivité / Scalability (Critère G7 #4)
-13.	Architecture modulaire permettant l'ajout de nouvelles lois et règlements
-14.	Extensible à d'autres domaines (fiscalité, santé, environnement, commerce)
-15.	Capacité à supporter une croissance du volume d'utilisateurs et de dossiers
-16.	Multilingue (français/anglais minimum, extensible aux langues du G7)
-17.	Livrables attendus
-Livrable Description
-Vidéo de démonstration Vidéo générée par IA via Google AI Studio illustrant le scénario d'un agent d'immigration utilisant OLI pour traiter le dossier de Sophie Martin
-Cahier des charges Document présent détaillant objectifs, fonctionnalités, contraintes et critères de réussite
-Maquettes UI/UX Captures d'écran du panneau latéral, système de couleurs et interface agent
-Soumission Impact Canada Formulaire complété sur le portail officiel avant le 1er décembre 2025
-18.	Annexes et références
-9.1 Ressources de données ouvertes (Problématique 2)
-• Canada : Délibérations de la Chambre des communes, Portail de données ouvertes
-• Royaume-Uni : UK Legislation, UK Legal API, UK Parliament MCP Server
-• Union européenne : EUR-Lex (législation, jurisprudence)
-• Allemagne : Bundestag, Journal officiel fédéral, Registre IA
-• Italie : Portail des lois actives, Developers Italia
-• Japon : Ensemble de données juridiques MCQ, Portail e-Gov Data
-9.2 Liens officiels
-• Portail Impact Canada : impact.canada.ca/en/challenges/g7-govAI
-• Page officielle Canada.ca : canada.ca/.../responsible-use-ai/ai-grand-challenge.html
-• Contact : g7aichallenge-defiiag7@tbs-sct.gc.ca
+Decision support solution for regulatory compliance
+G7 Grand Challenge IAgouv 2025
+Problem Statement Problem 2 — Laws, policies, and regulations
+Team Team G7
+Deadline December 1, 2025, 3:00 PM ET
+Final Deliverable AI-generated demonstration video (Google AI Studio)
+ 
+1. Context and Problem Statement
+1.1 Official Statement (Statement 2)
+"The public service works with many laws, policies, and regulations that are complex to navigate for clients and employees. Design a solution to streamline the interpretation and application of rules to increase consistency and compliance, and to reduce the cognitive load of employees."
+1.2 Problem Analysis
+Public servants face excessive cognitive load daily caused by the complexity of legal frameworks. This situation creates several critical challenges:
+• Information fragmentation: laws, regulations, and policies scattered across multiple sources
+• Human error risk: inconsistent rule interpretations
+• Extended processing time: time-consuming manual verifications
+• Lack of traceability: difficulty justifying decisions with precise legal references
+• Legacy systems: inability to modify backends of existing government applications
+2. Proposed Solution Overview
+2.1 Global Vision
+OLI (Overlay Legal Intelligence) is a decision support solution inspired by Grammarly, designed as an administrative augmented reality overlay. OLI integrates directly into employees' browsers as an extension and analyzes documents and forms in real-time to automatically identify regulatory non-compliance.
+2.2 Key Concept: the "Man-in-the-Browser" Approach
+The architecture relies on non-invasive DOM injection that allows instant modernization of existing government systems (legacy) without modifying a single line of backend code. This approach guarantees rapid, universal, and interoperable deployment.
+3. Project Objectives
+3.1 Main Objective
+Reduce the cognitive load of public servants by automating non-compliance identification and providing instant contextual legal references.
+3.2 Specific Objectives
+4. Increase consistency: standardize rule interpretation across all agents and departments
+5. Improve compliance: reduce processing errors through proactive anomaly detection
+6. Accelerate processing: reduce manual verification time by at least 40%
+7. Ensure traceability: link each decision to its official legal source with clickable URL
+8. Protect data: guarantee complete anonymization before any AI processing
+ 
+9. Expected Features
+4.1 Main Features
+F1 — Interface Scanner via DOM Injection
+• Browser extension compatible with Chrome/Edge/Firefox
+• Automatic reading of forms, fields, and open PDF documents
+• Works on any legacy system without backend modification
+F2 — RAG Compliance Engine (Retrieval-Augmented Generation)
+• Connection to a vector database containing Canadian laws (e.g., IRPR, LICO 2025)
+• Contextual analysis via Azure OpenAI or equivalent Canadian-hosted AI model
+• Real-time cross-referencing of extracted data with regulatory thresholds and criteria
+F3 — Color Code System (Compliance Zones)
+Zone | Meaning | Example
+🟢 GREEN | Compliance met | Sufficient funds, compliant letters
+🟡 YELLOW | Warning | Missing elements, date inconsistency
+🔴 RED | Critical risk | Fraudulent documents, thresholds not met
+F4 — Contextual Analysis Side Panel
+• Floating sidebar with case summary
+• Completeness percentage and risk level display
+• List of validated points and detected anomalies
+• AI recommendations with suggested actions (e.g., "Request co-signer")
+F5 — Clickable Links to Official Sources
+• Automatic URL insertion to Justice.gc.ca and official legal sources
+• Citation of applicable article or regulation (e.g., "R179(b)")
+• Reference storage in vector database for traceability
+4.2 Security Features
+F6 — Data Anonymization (Microsoft Presidio)
+• Automatic redaction of personal data before AI processing
+• Replacement with logical abstractions (e.g., "<ACCOUNT_ID>")
+• Compliance with the Privacy Act
+ 
+5. Technical and Organizational Constraints
+5.1 Technical Constraints
+Constraint | Specification
+Architecture | Browser extension (overlay) or integrated AI assistant — no backend access required
+AI Hosting | Azure OpenAI (Canada region) or equivalent government infrastructure
+Database | Vector database containing Canadian legislation (to build or existing)
+Security | Mandatory anonymization via Microsoft Presidio before sending to LLM
+Interoperability | Compatible with legacy systems via DOM injection (no API integration required)
+Languages | Bilingual (French/English) — multilingual extension
+5.2 Organizational Constraints
+• Deadline: submission before December 1, 2025, 3:00 PM ET
+• Team: maximum 4 members
+• Submission format: Impact Canada portal + demonstration video
+• Ethical compliance: G7 responsible AI principles (fairness, transparency, privacy)
+• MVP video: demonstration generated by structured prompts on Google AI Studio (Gemini)
+6. Target Users
+6.1 Primary Users
+• Public servants: processing applications subject to regulatory frameworks (immigration, taxation, health, vehicles, etc.)
+• Supervisors: validating decisions and needing legal traceability
+6.2 Secondary Users
+• Citizens and businesses: via a public version of the overlay on government websites, helping them pre-validate their applications
+• Government legal teams: for knowledge base updates
+6.3 Illustrative Persona
+Sophie, an immigration officer at IRCC, processes 40 files per day. She spends 30% of her time manually verifying LICO financial thresholds and document compliance. With OLI, the analysis is automatic: she opens the applicant's PDF bank statement, and the overlay instantly indicates that the average balance ($5,000) is below the required threshold ($20,635), with a clickable reference to article R179(b).
+ 
+7. Success Criteria
+The following criteria are aligned with the four official evaluation pillars of the G7 IAgouv Grand Challenge:
+7.1 Impact and Social Good (G7 Criterion #1)
+1. Measurable reduction of agent cognitive load (target: -40% verification time)
+2. Improved decision consistency between agents handling similar cases
+3. Compliance with responsible AI principles: fairness, privacy, accessibility
+4. Citizen benefit via better quality and faster service
+7.2 Interoperability (G7 Criterion #2)
+5. Works on any existing system via DOM injection (no backend modification)
+6. Transferable between ministries and departments (immigration, finance, health, etc.)
+7. Applicable to other G7 countries with legislative database adaptation
+8. Compatible with open data resources provided by the challenge
+7.3 Explainability (G7 Criterion #3)
+9. Each detection accompanied by a plain language justification
+10. Precise legal reference with clickable official URL (Justice.gc.ca)
+11. Intuitive color code system reducing ambiguity (green/yellow/red)
+12. Complete decision traceability for audit and accountability
+7.4 Scalability (G7 Criterion #4)
+13. Modular architecture allowing addition of new laws and regulations
+14. Extensible to other domains (taxation, health, environment, commerce)
+15. Capacity to support growth in user volume and cases
+16. Multilingual (French/English minimum, extensible to G7 languages)
+17. Expected Deliverables
+Deliverable | Description
+Demonstration video | AI-generated video via Google AI Studio illustrating the scenario of an immigration agent using OLI to process Sophie Martin's case
+Specifications | Present document detailing objectives, features, constraints, and success criteria
+UI/UX Mockups | Screenshots of side panel, color system, and agent interface
+Impact Canada Submission | Form completed on official portal before December 1, 2025
+18. Appendices and References
+9.1 Open Data Resources (Problem 2)
+• Canada: House of Commons Debates, Open Data Portal
+• United Kingdom: UK Legislation, UK Legal API, UK Parliament MCP Server
+• European Union: EUR-Lex (legislation, case law)
+• Germany: Bundestag, Federal Official Journal, AI Registry
+• Italy: Active Laws Portal, Developers Italia
+• Japan: Legal MCQ Dataset, e-Gov Data Portal
+9.2 Official Links
+• Impact Canada Portal: impact.canada.ca/en/challenges/g7-govAI
+• Official Canada.ca Page: canada.ca/.../responsible-use-ai/ai-grand-challenge.html
+• Contact: g7aichallenge-defiiag7@tbs-sct.gc.ca

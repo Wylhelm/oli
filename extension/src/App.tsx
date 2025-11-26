@@ -70,7 +70,7 @@ const statusConfig = {
     border: 'border-emerald-200',
     text: 'text-emerald-600',
     icon: CheckCircle,
-    label: 'Conforme'
+    label: 'Compliant'
   },
   AVERTISSEMENT: {
     color: 'amber',
@@ -78,7 +78,7 @@ const statusConfig = {
     border: 'border-amber-200',
     text: 'text-amber-600',
     icon: AlertCircle,
-    label: 'Avertissement'
+    label: 'Warning'
   },
   CRITIQUE: {
     color: 'red',
@@ -86,7 +86,7 @@ const statusConfig = {
     border: 'border-red-200',
     text: 'text-red-600',
     icon: AlertTriangle,
-    label: 'Critique'
+    label: 'Critical'
   }
 };
 
@@ -190,7 +190,7 @@ function AlertCard({ check, index, onScrollTo, isPdfMode }: { check: ComplianceC
       )}
       style={{ animationDelay: `${index * 100}ms` }}
       onClick={handleClick}
-      title={isClickable ? "Cliquer pour voir dans la page" : undefined}
+      title={isClickable ? "Click to view in page" : undefined}
     >
       <div className="flex items-start gap-3">
         <div className={cn(
@@ -211,7 +211,7 @@ function AlertCard({ check, index, onScrollTo, isPdfMode }: { check: ComplianceC
             {isClickable && (
               <span className="text-xs text-slate-400 flex items-center gap-1">
                 <ExternalLink className="w-3 h-3" />
-                Voir
+                View
               </span>
             )}
           </div>
@@ -297,7 +297,7 @@ function SourceCard({ source, index }: { source: LegalSource; index: number }) {
               )}
               {source.relevance && source.relevance > 0 && (
                 <span className="text-xs text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded font-medium">
-                  {Math.round(source.relevance * 100)}% pertinent
+                  {Math.round(source.relevance * 100)}% relevant
                 </span>
               )}
             </div>
@@ -323,7 +323,7 @@ function SourceCard({ source, index }: { source: LegalSource; index: number }) {
           className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-800 transition-colors bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-full"
         >
           <ExternalLink className="w-3.5 h-3.5" />
-          Consulter la loi sur Justice.gc.ca
+          View law on Justice.gc.ca
         </a>
       </div>
     </div>
@@ -338,10 +338,10 @@ function SourcesList({ sources }: { sources: LegalSource[] }) {
     <div className="bg-gradient-to-br from-slate-50 to-blue-50/30 rounded-xl p-4 border border-slate-200">
       <h4 className="text-xs font-semibold text-slate-600 uppercase tracking-wider mb-3 flex items-center gap-2">
         <BookOpen className="w-3.5 h-3.5 text-blue-600" />
-        Sources légales ({sources.length})
+        Legal Sources ({sources.length})
       </h4>
       <p className="text-xs text-slate-500 mb-3">
-        Cliquez sur une source pour voir l'extrait pertinent
+        Click on a source to view the relevant excerpt
       </p>
       <div className="space-y-2">
         {sources.slice(0, 5).map((source, i) => (
@@ -372,7 +372,7 @@ function ModeToggle({
         )}
       >
         <Zap className="w-3 h-3" />
-        Rapide
+        Fast
       </button>
       <button
         onClick={() => onChange('llm')}
@@ -384,7 +384,7 @@ function ModeToggle({
         )}
       >
         <Brain className="w-3 h-3" />
-        IA
+        AI
       </button>
     </div>
   );
@@ -458,7 +458,7 @@ function App() {
     setLoading(true);
     setResult(null);
     setError(null);
-    setLoadingMessage('Extraction du PDF...');
+    setLoadingMessage('Extracting PDF...');
     // Store PDF URL for navigation
     setCurrentPdfUrl(pdf.url);
 
@@ -466,12 +466,12 @@ function App() {
       // Extract PDF with page content
       const pdfResult = await pdfHandler.extractFromUrl(pdf.url);
       if (!pdfResult.success) {
-        throw new Error(pdfResult.error || 'Impossible d\'extraire le texte du PDF');
+        throw new Error(pdfResult.error || 'Unable to extract text from PDF');
       }
       
       // Analyze with LLM
-      setLoadingMessage('Recherche du contexte légal...');
-      setTimeout(() => setLoadingMessage('Analyse IA en cours...'), 1500);
+      setLoadingMessage('Retrieving legal context...');
+      setTimeout(() => setLoadingMessage('AI analysis in progress...'), 1500);
 
       const endpoint = analysisMode === 'llm' 
         ? 'http://localhost:8001/analyze/llm' 
@@ -490,7 +490,7 @@ function App() {
       const data: AnalysisResult = await response.json();
       setResult(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur inconnue');
+      setError(err instanceof Error ? err.message : 'Unknown error');
       setCurrentPdfUrl(null);
     } finally {
       setLoading(false);
@@ -505,9 +505,9 @@ function App() {
     
     // Show progressive loading messages for LLM mode
     if (analysisMode === 'llm') {
-      setLoadingMessage('Extraction du contenu...');
-      setTimeout(() => setLoadingMessage('Recherche du contexte légal...'), 1500);
-      setTimeout(() => setLoadingMessage('Analyse IA en cours...'), 3000);
+      setLoadingMessage('Extracting content...');
+      setTimeout(() => setLoadingMessage('Retrieving legal context...'), 1500);
+      setTimeout(() => setLoadingMessage('AI analysis in progress...'), 3000);
     }
 
     // Also detect PDFs
@@ -517,7 +517,7 @@ function App() {
       // 1. Get active tab
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
       if (!tab.id) {
-        throw new Error("Aucun onglet actif trouvé");
+        throw new Error("No active tab found");
       }
 
       // Check if current page is a PDF (including Adobe Acrobat wrapper)
@@ -542,7 +542,7 @@ function App() {
       
       if (isPdfPage && originalPdfUrl) {
         // Extract PDF with page tracking
-        setLoadingMessage('Extraction du PDF...');
+        setLoadingMessage('Extracting PDF...');
         // Set the ORIGINAL PDF URL for navigation (not the Adobe wrapper URL)
         setCurrentPdfUrl(originalPdfUrl);
         console.log("[OLI] PDF detected, setting currentPdfUrl:", originalPdfUrl);
@@ -565,7 +565,7 @@ function App() {
           if (isAdobePdf) {
             console.log("[OLI] On Adobe page, cannot extract text. Using placeholder.");
             // We can still navigate using the original URL, but analysis will be limited
-            pageText = `[PDF ouvert dans Adobe Acrobat: ${originalPdfUrl}]\n\nL'analyse de ce PDF nécessite une extraction manuelle. Les fonctions de navigation restent disponibles.`;
+            pageText = `[PDF opened in Adobe Acrobat: ${originalPdfUrl}]\n\nAnalysis of this PDF requires manual extraction. Navigation functions remain available.`;
           } else {
             // Try to extract text from page
             try {
@@ -640,7 +640,7 @@ function App() {
 
     } catch (err) {
       console.error("Error scanning page:", err);
-      setError(err instanceof Error ? err.message : "Erreur inconnue");
+      setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
       setLoading(false);
       setLoadingMessage('');
@@ -754,7 +754,7 @@ function App() {
           </div>
           <div className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-full text-xs font-medium border border-emerald-100 shadow-sm">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            Actif
+            Active
           </div>
         </div>
         <ModeToggle mode={analysisMode} onChange={setAnalysisMode} />
@@ -771,9 +771,9 @@ function App() {
                   <FileText className="w-12 h-12 text-slate-300" />
                 </div>
               </div>
-              <h2 className="text-lg font-semibold text-slate-700 mb-1">Prêt à analyser</h2>
+              <h2 className="text-lg font-semibold text-slate-700 mb-1">Ready to analyze</h2>
               <p className="text-sm text-slate-400 max-w-[200px]">
-                Cliquez sur le bouton ci-dessous pour scanner la page active
+                Click the button below to scan the active page
               </p>
             </div>
             
@@ -782,7 +782,7 @@ function App() {
               <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
                 <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
                   <FileType className="w-3 h-3" />
-                  PDFs détectés ({detectedPDFs.length})
+                  Detected PDFs ({detectedPDFs.length})
                 </h3>
                 <div className="space-y-2">
                   {detectedPDFs.map((pdf, i) => (
@@ -796,7 +796,7 @@ function App() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-slate-700 truncate group-hover:text-violet-700">
-                          {pdf.url.split('/').pop() || 'Document PDF'}
+                          {pdf.url.split('/').pop() || 'PDF Document'}
                         </p>
                         <p className="text-xs text-slate-400">{pdf.type}</p>
                       </div>
@@ -816,7 +816,7 @@ function App() {
               <AlertTriangle className="w-5 h-5 text-red-600" />
             </div>
             <div>
-              <h3 className="font-semibold text-red-700 mb-1">Erreur d'analyse</h3>
+              <h3 className="font-semibold text-red-700 mb-1">Analysis Error</h3>
               <p className="text-sm text-red-600">{error}</p>
             </div>
           </div>
@@ -831,7 +831,7 @@ function App() {
               className="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm font-medium transition-all mb-3"
             >
               <RotateCcw className="w-4 h-4" />
-              Nouvelle analyse
+              New Analysis
             </button>
             
             {/* Score Cards */}
@@ -842,11 +842,11 @@ function App() {
                   value={result.risk_score} 
                   color={getRiskColor(result.risk_score)}
                   label={`${result.risk_score}`}
-                  sublabel="Risque"
+                  sublabel="Risk"
                   size={90}
                   strokeWidth={6}
                 />
-                <p className="text-xs text-slate-400 mt-2">Score de risque</p>
+                <p className="text-xs text-slate-400 mt-2">Risk Score</p>
               </div>
 
               {/* Completeness Score */}
@@ -855,11 +855,11 @@ function App() {
                   value={result.completeness_score}
                   color="primary"
                   label={`${result.completeness_score}%`}
-                  sublabel="Complet"
+                  sublabel="Complete"
                   size={90}
                   strokeWidth={6}
                 />
-                <p className="text-xs text-slate-400 mt-2">Complétude</p>
+                <p className="text-xs text-slate-400 mt-2">Completeness</p>
               </div>
             </div>
 
@@ -890,7 +890,7 @@ function App() {
             <div className="space-y-3">
               <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-1 flex items-center gap-2">
                 <Scale className="w-3 h-3" />
-                Contrôles de conformité ({result.checks.length})
+                Compliance Checks ({result.checks.length})
               </h3>
               
               {result.checks.map((check, index) => (
@@ -915,19 +915,19 @@ function App() {
                   {result.analysis_mode === 'llm' ? (
                     <>
                       <Brain className="w-3.5 h-3.5" />
-                      <span>Analyse IA avec RAG - Contexte légal récupéré</span>
+                      <span>AI analysis with RAG - Legal context retrieved</span>
                     </>
                   ) : (
                     <>
                       <Zap className="w-3.5 h-3.5" />
-                      <span>Analyse rapide basée sur règles</span>
+                      <span>Fast rule-based analysis</span>
                     </>
                   )}
                 </div>
               )}
               <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 text-xs text-slate-500 flex items-center gap-2">
                 <Shield className="w-3.5 h-3.5 text-primary" />
-                <span>Données anonymisées avant traitement</span>
+                <span>Data anonymized before processing</span>
               </div>
             </div>
           </>
@@ -959,12 +959,12 @@ function App() {
           {loading ? (
             <>
               <Loader2 className="w-5 h-5 animate-spin" />
-              {analysisMode === 'llm' ? 'Analyse IA...' : 'Analyse...'}
+              {analysisMode === 'llm' ? 'AI Analysis...' : 'Analyzing...'}
             </>
           ) : (
             <>
               {analysisMode === 'llm' ? <Brain className="w-5 h-5" /> : <Shield className="w-5 h-5" />}
-              {analysisMode === 'llm' ? 'Analyser avec IA' : 'Scanner la page'}
+              {analysisMode === 'llm' ? 'Analyze with AI' : 'Scan Page'}
             </>
           )}
         </button>

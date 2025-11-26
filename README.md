@@ -1,242 +1,242 @@
 # OLI - Overlay Legal Intelligence
 
-> 🛡️ **Overlay Legal Intelligence** - Surcouche d'intelligence légale pour les employés gouvernementaux
+> 🛡️ **Overlay Legal Intelligence** - Legal intelligence layer for government employees
 
-## Vue d'ensemble
+## Overview
 
-OLI est une extension Chrome innovante qui agit comme une "surcouche de réalité augmentée administrative". Elle analyse en temps réel les documents et formulaires des systèmes gouvernementaux legacy pour identifier automatiquement les non-conformités réglementaires.
+OLI is an innovative Chrome extension that acts as an "administrative augmented reality overlay". It analyzes documents and forms from legacy government systems in real-time to automatically identify regulatory non-compliance issues.
 
-**Nouveautés Phase 3** : Interface améliorée, support PDF, logo personnalisé, et surlignage intelligent des champs.
+**Phase 3 New Features**: Improved interface, PDF support, custom logo, and intelligent field highlighting.
 
-## Fonctionnalités
+## Features
 
-### 🤖 Analyse IA avec RAG (Retrieval-Augmented Generation)
-- **Base de connaissances légales** : 76 lois et règlements d'immigration (7 898 chunks indexés)
-- **Recherche sémantique** : ChromaDB avec embeddings multilingues
-- **LLM** : Ollama avec modèle configurable (ex: `gpt-oss:120b-cloud`)
-- **Citations légales** : Références directes à Justice.gc.ca
+### 🤖 AI Analysis with RAG (Retrieval-Augmented Generation)
+- **Legal Knowledge Base**: 76 immigration laws and regulations (7,898 chunks indexed)
+- **Semantic Search**: ChromaDB with multilingual embeddings
+- **LLM**: Ollama with configurable model (e.g., `gpt-oss:120b-cloud`)
+- **Legal Citations**: Direct references to Justice.gc.ca
 
-### 🔍 Analyse Multi-Règles
-- **Vérification LICO** - Seuil de suffisance financière (RIPR R179)
-- **Validité des documents** - Vérification de la fraîcheur (RIPR R54)
-- **Vérification d'identité** - Contrôle de complétude (RIPR R52)
-- **Preuve de fonds** - Validation du type de documentation (RIPR R76)
+### 🔍 Multi-Rule Analysis
+- **LICO Verification** - Financial sufficiency threshold (IRPR R179)
+- **Document Validity** - Freshness verification (IRPR R54)
+- **Identity Verification** - Completeness check (IRPR R52)
+- **Proof of Funds** - Documentation type validation (IRPR R76)
 
-### 📊 Tableau de Bord Intelligent
-- Score de risque circulaire (0-100)
-- Indicateur de complétude du dossier
-- Code couleur intuitif : 🟢 Conforme | 🟡 Avertissement | 🔴 Critique
-- Références légales cliquables vers Justice.gc.ca
-- **Bouton "Nouvelle analyse"** pour recommencer sans recharger
+### 📊 Intelligent Dashboard
+- Circular risk score (0-100)
+- Case completeness indicator
+- Intuitive color coding: 🟢 Compliant | 🟡 Warning | 🔴 Critical
+- Clickable legal references to Justice.gc.ca
+- **"New Analysis" button** to restart without reloading
 
-### 📄 Support PDF
-- **Détection automatique** des PDFs sur la page
-- **Extraction de texte** avec PDF.js
-- **Analyse en un clic** des documents PDF détectés
+### 📄 PDF Support
+- **Automatic Detection** of PDFs on the page
+- **Text Extraction** with PDF.js
+- **One-Click Analysis** of detected PDF documents
 
-### 🎯 Injection DOM Avancée
-- **Surlignage intelligent** des champs à risque
-- Détection automatique dans les formulaires et tableaux
-- Tooltips interactifs positionnés à côté du bon champ
-- Badge d'alerte (!, ?, ✓) sur les éléments surlignés
-- Indicateur flottant de statut global
-- Animations fluides et effets visuels
+### 🎯 Advanced DOM Injection
+- **Intelligent Highlighting** of at-risk fields
+- Automatic detection in forms and tables
+- Interactive tooltips positioned next to the correct field
+- Alert badges (!, ?, ✓) on highlighted elements
+- Floating global status indicator
+- Smooth animations and visual effects
 
-### 🔒 Sécurité & Confidentialité (Microsoft Presidio)
-- **Anonymisation avancée** avec Microsoft Presidio (NER + regex)
-- **PII canadien** : NAS, UCI, codes postaux, passeports
-- **PII standard** : Noms, emails, téléphones, cartes de crédit
-- Détection automatique de la langue (français/anglais)
-- Aucune donnée personnelle envoyée au LLM
+### 🔒 Security & Privacy (Microsoft Presidio)
+- **Advanced Anonymization** with Microsoft Presidio (NER + regex)
+- **Canadian PII**: SIN, UCI, postal codes, passports
+- **Standard PII**: Names, emails, phone numbers, credit cards
+- Automatic language detection (French/English)
+- No personal data sent to the LLM
 
 ## Architecture
 
 ```
 OLI/
-├── backend/                    # Serveur FastAPI (Python)
-│   ├── main.py                # API d'analyse de conformité
+├── backend/                    # FastAPI Server (Python)
+│   ├── main.py                # Compliance analysis API
 │   ├── requirements.txt
-│   ├── rag/                   # Système RAG
-│   │   ├── downloader.py      # Téléchargement lois depuis Justice.gc.ca
+│   ├── rag/                   # RAG System
+│   │   ├── downloader.py      # Download laws from Justice.gc.ca
 │   │   ├── vector_store.py    # ChromaDB + embeddings
-│   │   └── retriever.py       # Récupération contexte légal
-│   ├── llm/                   # Intégration LLM
-│   │   ├── ollama_client.py   # Client Ollama API
-│   │   ├── prompts.py         # Templates de prompts
-│   │   └── compliance_chain.py # Pipeline complet RAG+LLM
+│   │   └── retriever.py       # Legal context retrieval
+│   ├── llm/                   # LLM Integration
+│   │   ├── ollama_client.py   # Ollama API Client
+│   │   ├── prompts.py         # Prompt templates
+│   │   └── compliance_chain.py # Complete RAG+LLM pipeline
 │   └── data/
-│       ├── laws/              # 76 documents légaux (JSON)
-│       └── chroma_db/         # Base vectorielle
-├── extension/                  # Extension Chrome (React/Vite)
+│       ├── laws/              # 76 legal documents (JSON)
+│       └── chroma_db/         # Vector database
+├── extension/                  # Chrome Extension (React/Vite)
 │   ├── src/
-│   │   ├── App.tsx            # Interface principale
+│   │   ├── App.tsx            # Main interface
 │   │   └── lib/
-│   │       ├── dom-scanner.ts # Scanner DOM avec MutationObserver
-│   │       ├── pdf-handler.ts # Extraction PDF avec PDF.js
-│   │       ├── anonymizer.ts  # Anonymisation des données
+│   │       ├── dom-scanner.ts # DOM Scanner with MutationObserver
+│   │       ├── pdf-handler.ts # PDF extraction with PDF.js
+│   │       ├── anonymizer.ts  # Data anonymization
 │   │       └── utils.ts
 │   ├── public/
-│   │   ├── content.js         # Script d'injection DOM
+│   │   ├── content.js         # DOM injection script
 │   │   ├── manifest.json
-│   │   ├── logo.png           # Logo OLI
+│   │   ├── logo.png           # OLI Logo
 │   │   └── service-worker.js
-│   └── dist/                  # Build de production
-├── test_documents/             # Documents de test
-│   ├── legacy-portal.html     # Portail IRCC simulé (4 cas de test)
-│   ├── index.html             # Hub de test
-│   └── *.pdf                  # PDFs de test générés
-├── logo.png                    # Logo OLI source
-├── create_test_pdf.py          # Script de génération des PDFs
-└── serve_test_docs.py          # Serveur HTTP local pour les tests
+│   └── dist/                  # Production build
+├── test_documents/             # Test documents
+│   ├── legacy-portal.html     # Simulated IRCC portal (4 test cases)
+│   ├── index.html             # Test hub
+│   └── *.pdf                  # Generated test PDFs
+├── logo.png                    # OLI logo source
+├── create_test_pdf.py          # PDF generation script
+└── serve_test_docs.py          # Local HTTP server for testing
 ```
 
-## Installation & Démarrage
+## Installation & Setup
 
-### Prérequis
+### Prerequisites
 - Python 3.11+
 - Node.js 18+
-- Ollama (pour LLM local)
-- Conda (recommandé)
+- Ollama (for local LLM)
+- Conda (recommended)
 
 ### 1. Backend (API + RAG + LLM + Presidio)
 
 ```bash
 cd backend
 
-# Créer environnement conda
+# Create conda environment
 conda create -n OLI python=3.11
 conda activate OLI
 
-# Installer les dépendances
+# Install dependencies
 pip install -r requirements.txt
 
-# Installer les modèles spaCy pour Presidio (anonymisation NER)
+# Install spaCy models for Presidio (NER anonymization)
 python -m spacy download en_core_web_sm
 python -m spacy download fr_core_news_sm
 
-# Télécharger les lois d'immigration (première fois uniquement)
+# Download immigration laws (first time only)
 python rag/downloader.py
 
-# Ingérer dans la base vectorielle (première fois uniquement)
+# Ingest into vector database (first time only)
 python rag/vector_store.py
 
-# Tester l'anonymisation Presidio (optionnel)
+# Test Presidio anonymization (optional)
 python test_presidio.py
 
-# Lancer le serveur
+# Start the server
 uvicorn main:app --reload --port 8001
 ```
 
-Le serveur démarre sur `http://localhost:8001`
+Server starts at `http://localhost:8001`
 
 ### 2. Ollama (LLM)
 
 ```bash
-# Installer un modèle compatible
+# Install a compatible model
 ollama pull qwen3:32b
-# ou
+# or
 ollama pull gpt-oss:120b-cloud
 
-# Vérifier que Ollama tourne sur localhost:11434
+# Verify Ollama is running on localhost:11434
 ollama list
 ```
 
-### 3. Extension Chrome
+### 3. Chrome Extension
 
 ```bash
 cd extension
 
-# Installer les dépendances
+# Install dependencies
 npm install
 
-# Build pour production
+# Build for production
 npm run build
 ```
 
-### 4. Charger l'Extension
+### 4. Load the Extension
 
-1. Ouvrir Chrome → `chrome://extensions`
-2. Activer le **Mode développeur** (coin supérieur droit)
-3. Cliquer **Charger l'extension non empaquetée**
-4. Sélectionner le dossier `extension/dist`
+1. Open Chrome → `chrome://extensions`
+2. Enable **Developer mode** (top right corner)
+3. Click **Load unpacked**
+4. Select the `extension/dist` folder
 
-### 5. Serveur de Test (optionnel)
+### 5. Test Server (optional)
 
 ```bash
-# Pour tester les PDFs sans problèmes CORS
+# To test PDFs without CORS issues
 python serve_test_docs.py
-# Ouvre http://localhost:8080
+# Opens http://localhost:8080
 ```
 
-## Démonstration
+## Demonstration
 
-### Scénario : Analyse d'un dossier d'immigration
+### Scenario: Immigration Case Analysis
 
-1. **Démarrer le serveur de test** : `python serve_test_docs.py`
-2. **Ouvrir le portail legacy** : http://localhost:8080/legacy-portal.html
-3. **Sélectionner un cas de test** : Sophie Martin (critique), Jean-Claude (conforme), etc.
-4. **Activer OLI** : Cliquer sur l'icône de l'extension (🛡️)
-5. **Scanner la page** : Cliquer sur "Analyser avec IA"
+1. **Start the test server**: `python serve_test_docs.py`
+2. **Open the legacy portal**: http://localhost:8080/legacy-portal.html
+3. **Select a test case**: Sophie Martin (critical), Jean-Claude (compliant), etc.
+4. **Activate OLI**: Click on the extension icon (🛡️)
+5. **Scan the page**: Click "Analyze with AI"
 
-### Cas de Test Disponibles
+### Available Test Cases
 
-| Cas | Statut | Description |
-|-----|--------|-------------|
-| Sophie Martin | 🔴 CRITIQUE | Fonds insuffisants (5k$ vs 20k$), document périmé |
-| Jean-Claude Tremblay | 🟢 CONFORME | Tous les critères respectés |
-| Marie Dubois | 🟡 AVERTISSEMENT | Fonds limites pour 2 personnes |
-| Ahmed Hassan | 🔴 CRITIQUE | Multiples problèmes (fonds, docs, délais) |
+| Case | Status | Description |
+|------|--------|-------------|
+| Sophie Martin | 🔴 CRITICAL | Insufficient funds ($5k vs $20k), expired document |
+| Jean-Claude Tremblay | 🟢 COMPLIANT | All criteria met |
+| Marie Dubois | 🟡 WARNING | Funds at limit for 2 people |
+| Ahmed Hassan | 🔴 CRITICAL | Multiple issues (funds, docs, delays) |
 
-### Résultats attendus
+### Expected Results
 
-Le système détectera automatiquement avec justification légale :
-- ❌ **Solde insuffisant** : 5 000 $ < 20 635 $ (RIPR Section 4, R179)
-- ⚠️ **Document périmé** : Date de soumission > 6 mois (RIPR Section 44)
-- ✅ **Preuve de fonds** : Relevé bancaire certifié détecté (RIPR Section 74)
-- ✅ **Identité** : Informations complètes
+The system will automatically detect with legal justification:
+- ❌ **Insufficient Balance**: $5,000 < $20,635 (IRPR Section 4, R179)
+- ⚠️ **Expired Document**: Submission date > 6 months (IRPR Section 44)
+- ✅ **Proof of Funds**: Certified bank statement detected (IRPR Section 74)
+- ✅ **Identity**: Complete information
 
 ## API Endpoints
 
-### Analyse
+### Analysis
 
-| Endpoint | Méthode | Description |
-|----------|---------|-------------|
-| `/analyze` | POST | Analyse règle-based (rapide) |
-| `/analyze/llm` | POST | Analyse RAG + LLM (complète) |
-| `/health` | GET | État du serveur + RAG + LLM |
-| `/rules` | GET | Liste des règles de conformité |
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/analyze` | POST | Rule-based analysis (fast) |
+| `/analyze/llm` | POST | RAG + LLM analysis (comprehensive) |
+| `/health` | GET | Server status + RAG + LLM |
+| `/rules` | GET | List of compliance rules |
 
-### RAG (Recherche légale)
+### RAG (Legal Search)
 
-| Endpoint | Méthode | Description |
-|----------|---------|-------------|
-| `/rag/search` | POST | Recherche sémantique dans les lois |
-| `/rag/context` | POST | Contexte légal pour un type de vérification |
-| `/rag/stats` | GET | Statistiques de la base vectorielle |
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/rag/search` | POST | Semantic search in laws |
+| `/rag/context` | POST | Legal context for a check type |
+| `/rag/stats` | GET | Vector database statistics |
 
 ### LLM
 
-| Endpoint | Méthode | Description |
-|----------|---------|-------------|
-| `/llm/status` | GET | État du LLM et modèle actif |
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/llm/status` | GET | LLM status and active model |
 
-### Anonymisation (Microsoft Presidio)
+### Anonymization (Microsoft Presidio)
 
-| Endpoint | Méthode | Description |
-|----------|---------|-------------|
-| `/anonymize` | POST | Anonymise le texte (PII → tokens) |
-| `/anonymize/detect` | POST | Détecte les PII sans anonymiser |
-| `/anonymize/status` | GET | État de Presidio (NER ou fallback) |
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/anonymize` | POST | Anonymize text (PII → tokens) |
+| `/anonymize/detect` | POST | Detect PII without anonymizing |
+| `/anonymize/status` | GET | Presidio status (NER or fallback) |
 
-### Exemple de requête LLM
+### LLM Request Example
 
 ```bash
 curl -X POST http://localhost:8001/analyze/llm \
   -H "Content-Type: application/json" \
-  -d '{"text": "Sophie Martin, Solde: 5 000 $, Date: 2024-01-01"}'
+  -d '{"text": "Sophie Martin, Balance: $5,000, Date: 2024-01-01"}'
 ```
 
-Réponse :
+Response:
 ```json
 {
   "overall_status": "CRITIQUE",
@@ -244,7 +244,7 @@ Réponse :
   "analysis_mode": "llm",
   "checks": [
     {
-      "name": "Seuil LICO",
+      "name": "LICO Threshold",
       "status": "AVERTISSEMENT",
       "reference": "IRPR Section 4 & 74",
       "confidence": 0.85,
@@ -257,42 +257,42 @@ Réponse :
 }
 ```
 
-## Stack Technique
+## Tech Stack
 
-- **Frontend** : React 18, TypeScript, Vite, Tailwind CSS
-- **Backend** : Python 3.11+, FastAPI, Pydantic
-- **RAG** : ChromaDB, Sentence-Transformers (paraphrase-multilingual-MiniLM-L12-v2)
-- **LLM** : Ollama (configurable)
-- **Anonymisation** : Microsoft Presidio + spaCy NER (fr/en)
-- **PDF** : PDF.js (pdfjs-dist)
-- **Extension** : Manifest V3, Chrome Side Panel API
-- **Data Source** : Justice.gc.ca XML API (76 lois d'immigration)
+- **Frontend**: React 18, TypeScript, Vite, Tailwind CSS
+- **Backend**: Python 3.11+, FastAPI, Pydantic
+- **RAG**: ChromaDB, Sentence-Transformers (paraphrase-multilingual-MiniLM-L12-v2)
+- **LLM**: Ollama (configurable)
+- **Anonymization**: Microsoft Presidio + spaCy NER (fr/en)
+- **PDF**: PDF.js (pdfjs-dist)
+- **Extension**: Manifest V3, Chrome Side Panel API
+- **Data Source**: Justice.gc.ca XML API (76 immigration laws)
 
-## Conformité G7 IAgouv
+## G7 IAgouv Compliance
 
-Ce projet répond aux critères du Grand Défi IAgouv G7 2025 :
+This project meets the G7 Grand Challenge IAgouv 2025 criteria:
 
-1. ✅ **Impact social** - Réduction de la charge cognitive des agents
-2. ✅ **Interopérabilité** - Fonctionne sur tout système legacy via injection DOM
-3. ✅ **Explicabilité** - Justifications claires avec références légales (RAG)
-4. ✅ **Évolutivité** - Architecture modulaire, multilingue, LLM interchangeable
+1. ✅ **Social Impact** - Reduces cognitive load for agents
+2. ✅ **Interoperability** - Works on any legacy system via DOM injection
+3. ✅ **Explainability** - Clear justifications with legal references (RAG)
+4. ✅ **Scalability** - Modular architecture, multilingual, swappable LLM
 
 ## Configuration
 
-Variables d'environnement (optionnel) :
+Environment variables (optional):
 
 ```bash
-# Modèle Ollama (défaut: qwen3:32b)
+# Ollama model (default: qwen3:32b)
 export OLLAMA_MODEL=qwen3:32b
 
-# URL Ollama (défaut: http://localhost:11434)
+# Ollama URL (default: http://localhost:11434)
 export OLLAMA_BASE_URL=http://localhost:11434
 ```
 
-## Licence
+## License
 
-Projet développé dans le cadre du Grand Défi IAgouv G7 2025.
+Project developed for the G7 IAgouv Grand Challenge 2025.
 
 ---
 
-**🍁 Équipe G7 - OLI (Overlay Legal Intelligence)**
+**🍁 Team G7 - OLI (Overlay Legal Intelligence)**
