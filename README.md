@@ -6,14 +6,14 @@
 
 OLI est une extension Chrome innovante qui agit comme une "surcouche de réalité augmentée administrative". Elle analyse en temps réel les documents et formulaires des systèmes gouvernementaux legacy pour identifier automatiquement les non-conformités réglementaires.
 
-**Nouveauté Phase 2** : Intégration RAG + LLM pour une analyse intelligente basée sur la législation canadienne réelle.
+**Nouveautés Phase 3** : Interface améliorée, support PDF, logo personnalisé, et surlignage intelligent des champs.
 
 ## Fonctionnalités
 
 ### 🤖 Analyse IA avec RAG (Retrieval-Augmented Generation)
 - **Base de connaissances légales** : 76 lois et règlements d'immigration (7 898 chunks indexés)
 - **Recherche sémantique** : ChromaDB avec embeddings multilingues
-- **LLM** : Ollama avec modèle `gpt-oss:120b-cloud` pour analyse contextuelle
+- **LLM** : Ollama avec modèle configurable (ex: `gpt-oss:120b-cloud`)
 - **Citations légales** : Références directes à Justice.gc.ca
 
 ### 🔍 Analyse Multi-Règles
@@ -27,10 +27,18 @@ OLI est une extension Chrome innovante qui agit comme une "surcouche de réalit�
 - Indicateur de complétude du dossier
 - Code couleur intuitif : 🟢 Conforme | 🟡 Avertissement | 🔴 Critique
 - Références légales cliquables vers Justice.gc.ca
+- **Bouton "Nouvelle analyse"** pour recommencer sans recharger
+
+### 📄 Support PDF
+- **Détection automatique** des PDFs sur la page
+- **Extraction de texte** avec PDF.js
+- **Analyse en un clic** des documents PDF détectés
 
 ### 🎯 Injection DOM Avancée
-- Surlignage multi-couleurs sur les éléments à risque
-- Tooltips interactifs avec détails de conformité
+- **Surlignage intelligent** des champs à risque
+- Détection automatique dans les formulaires et tableaux
+- Tooltips interactifs positionnés à côté du bon champ
+- Badge d'alerte (!, ?, ✓) sur les éléments surlignés
 - Indicateur flottant de statut global
 - Animations fluides et effets visuels
 
@@ -62,14 +70,22 @@ OLI/
 │   │   ├── App.tsx            # Interface principale
 │   │   └── lib/
 │   │       ├── dom-scanner.ts # Scanner DOM avec MutationObserver
+│   │       ├── pdf-handler.ts # Extraction PDF avec PDF.js
 │   │       ├── anonymizer.ts  # Anonymisation des données
 │   │       └── utils.ts
 │   ├── public/
 │   │   ├── content.js         # Script d'injection DOM
 │   │   ├── manifest.json
+│   │   ├── logo.png           # Logo OLI
 │   │   └── service-worker.js
 │   └── dist/                  # Build de production
-└── legacy-portal.html          # Portail de test (simulation IRCC)
+├── test_documents/             # Documents de test
+│   ├── legacy-portal.html     # Portail IRCC simulé (4 cas de test)
+│   ├── index.html             # Hub de test
+│   └── *.pdf                  # PDFs de test générés
+├── logo.png                    # Logo OLI source
+├── create_test_pdf.py          # Script de génération des PDFs
+└── serve_test_docs.py          # Serveur HTTP local pour les tests
 ```
 
 ## Installation & Démarrage
@@ -107,7 +123,9 @@ Le serveur démarre sur `http://localhost:8001`
 ### 2. Ollama (LLM)
 
 ```bash
-# Installer le modèle
+# Installer un modèle compatible
+ollama pull qwen3:32b
+# ou
 ollama pull gpt-oss:120b-cloud
 
 # Vérifier que Ollama tourne sur localhost:11434
@@ -133,13 +151,32 @@ npm run build
 3. Cliquer **Charger l'extension non empaquetée**
 4. Sélectionner le dossier `extension/dist`
 
+### 5. Serveur de Test (optionnel)
+
+```bash
+# Pour tester les PDFs sans problèmes CORS
+python serve_test_docs.py
+# Ouvre http://localhost:8080
+```
+
 ## Démonstration
 
 ### Scénario : Analyse d'un dossier d'immigration
 
-1. **Ouvrir le portail legacy** : Double-cliquer sur `legacy-portal.html`
-2. **Activer OLI** : Cliquer sur l'icône de l'extension (🛡️)
-3. **Scanner la page** : Cliquer sur "Scanner la page"
+1. **Démarrer le serveur de test** : `python serve_test_docs.py`
+2. **Ouvrir le portail legacy** : http://localhost:8080/legacy-portal.html
+3. **Sélectionner un cas de test** : Sophie Martin (critique), Jean-Claude (conforme), etc.
+4. **Activer OLI** : Cliquer sur l'icône de l'extension (🛡️)
+5. **Scanner la page** : Cliquer sur "Analyser avec IA"
+
+### Cas de Test Disponibles
+
+| Cas | Statut | Description |
+|-----|--------|-------------|
+| Sophie Martin | 🔴 CRITIQUE | Fonds insuffisants (5k$ vs 20k$), document périmé |
+| Jean-Claude Tremblay | 🟢 CONFORME | Tous les critères respectés |
+| Marie Dubois | 🟡 AVERTISSEMENT | Fonds limites pour 2 personnes |
+| Ahmed Hassan | 🔴 CRITIQUE | Multiples problèmes (fonds, docs, délais) |
 
 ### Résultats attendus
 
@@ -193,6 +230,7 @@ Réponse :
       "name": "Seuil LICO",
       "status": "AVERTISSEMENT",
       "reference": "IRPR Section 4 & 74",
+      "confidence": 0.85,
       "url": "http://laws-lois.justice.gc.ca/eng/regulations/SOR-2002-227/"
     }
   ],
@@ -207,7 +245,8 @@ Réponse :
 - **Frontend** : React 18, TypeScript, Vite, Tailwind CSS
 - **Backend** : Python 3.11+, FastAPI, Pydantic
 - **RAG** : ChromaDB, Sentence-Transformers (paraphrase-multilingual-MiniLM-L12-v2)
-- **LLM** : Ollama (gpt-oss:120b-cloud)
+- **LLM** : Ollama (configurable)
+- **PDF** : PDF.js (pdfjs-dist)
 - **Extension** : Manifest V3, Chrome Side Panel API
 - **Data Source** : Justice.gc.ca XML API (76 lois d'immigration)
 
@@ -225,8 +264,8 @@ Ce projet répond aux critères du Grand Défi IAgouv G7 2025 :
 Variables d'environnement (optionnel) :
 
 ```bash
-# Modèle Ollama (défaut: gpt-oss:120b-cloud)
-export OLLAMA_MODEL=gpt-oss:120b-cloud
+# Modèle Ollama (défaut: qwen3:32b)
+export OLLAMA_MODEL=qwen3:32b
 
 # URL Ollama (défaut: http://localhost:11434)
 export OLLAMA_BASE_URL=http://localhost:11434

@@ -4,119 +4,145 @@
     <meta charset="UTF-8">
     <title>Portail Immigration Canada - Système Hérité</title>
     <style>
+        * {
+            box-sizing: border-box;
+        }
         body {
-            font-family: 'Times New Roman', Times, serif;
+            font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
             background-color: #e8e8e8;
             margin: 0;
-            padding: 20px;
+            padding: 30px;
+            font-size: 16px;
+            line-height: 1.6;
             background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d0d0d0' fill-opacity='0.3'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
         }
         .container {
-            width: 850px;
+            max-width: 1000px;
             margin: 0 auto;
             background-color: #fff;
             border: 2px solid #666;
             padding: 0;
-            box-shadow: 4px 4px 8px rgba(0,0,0,0.2);
+            box-shadow: 4px 4px 12px rgba(0,0,0,0.25);
+            border-radius: 4px;
+            overflow: hidden;
         }
         .gov-header {
             background: linear-gradient(180deg, #8B0000 0%, #6B0000 100%);
             color: white;
-            padding: 15px 20px;
-            border-bottom: 3px solid #FEC30D;
+            padding: 20px 25px;
+            border-bottom: 4px solid #FEC30D;
         }
         .gov-header h1 {
-            font-size: 18px;
-            margin: 0 0 5px 0;
-            font-family: Arial, sans-serif;
+            font-size: 22px;
+            margin: 0 0 8px 0;
+            font-weight: 600;
         }
         .gov-header .canada-flag {
             float: right;
-            font-size: 24px;
+            font-size: 32px;
         }
         .gov-header p {
-            font-size: 12px;
+            font-size: 14px;
             margin: 0;
             opacity: 0.9;
         }
         .toolbar {
             background-color: #f0f0f0;
             border-bottom: 1px solid #999;
-            padding: 8px 15px;
-            font-family: Arial, sans-serif;
-            font-size: 11px;
+            padding: 12px 20px;
+            font-size: 14px;
             color: #333;
         }
         .toolbar span {
-            margin-right: 20px;
+            margin-right: 25px;
         }
         .content {
-            padding: 20px;
+            padding: 25px;
         }
         .case-header {
             background-color: #003366;
             color: white;
-            padding: 10px 15px;
-            font-family: Arial, sans-serif;
-            font-size: 14px;
-            margin-bottom: 15px;
+            padding: 15px 20px;
+            font-size: 18px;
+            margin-bottom: 20px;
+            border-radius: 4px;
         }
         .case-header .case-id {
             float: right;
             font-weight: normal;
-            opacity: 0.8;
+            opacity: 0.85;
+            font-size: 15px;
         }
         .section {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             border: 1px solid #999;
             background-color: #fafafa;
+            border-radius: 4px;
+            overflow: hidden;
         }
         .section-title {
-            font-weight: bold;
+            font-weight: 600;
             background: linear-gradient(180deg, #e8e8e8 0%, #d0d0d0 100%);
-            padding: 8px 12px;
+            padding: 12px 16px;
             border-bottom: 1px solid #999;
-            font-family: Arial, sans-serif;
-            font-size: 12px;
+            font-size: 15px;
             color: #333;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
         .section-content {
-            padding: 12px;
+            padding: 18px;
         }
         .field {
-            margin-bottom: 8px;
+            margin-bottom: 12px;
             display: flex;
             align-items: baseline;
+            gap: 15px;
         }
         .label {
-            font-weight: bold;
-            width: 220px;
-            font-size: 13px;
+            font-weight: 600;
+            min-width: 250px;
+            font-size: 15px;
             color: #444;
             flex-shrink: 0;
         }
         .value {
             color: #000;
-            font-size: 13px;
+            font-size: 16px;
             flex: 1;
         }
         .value.highlight-info {
             background-color: #ffffcc;
-            padding: 2px 6px;
+            padding: 4px 10px;
             display: inline-block;
+            border-radius: 3px;
+        }
+        .value.highlight-danger {
+            background-color: #ffe0e0;
+            padding: 4px 10px;
+            display: inline-block;
+            color: #b00;
+            border-radius: 3px;
+            font-weight: 600;
+        }
+        .value.highlight-success {
+            background-color: #e0ffe0;
+            padding: 4px 10px;
+            display: inline-block;
+            color: #060;
+            border-radius: 3px;
+            font-weight: 600;
         }
         .value.amount {
-            font-weight: bold;
-            font-size: 14px;
+            font-weight: 700;
+            font-size: 18px;
         }
         .status-badge {
             display: inline-block;
-            padding: 3px 10px;
-            border-radius: 3px;
-            font-size: 11px;
-            font-family: Arial, sans-serif;
+            padding: 5px 14px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 600;
             text-transform: uppercase;
         }
         .status-pending {
@@ -136,55 +162,58 @@
         }
         .divider {
             border-top: 1px dashed #ccc;
-            margin: 10px 0;
+            margin: 15px 0;
         }
         table.data-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 12px;
+            font-size: 15px;
         }
         table.data-table th {
             background-color: #e0e0e0;
             border: 1px solid #999;
-            padding: 6px 10px;
+            padding: 12px 14px;
             text-align: left;
-            font-family: Arial, sans-serif;
+            font-weight: 600;
         }
         table.data-table td {
             border: 1px solid #ccc;
-            padding: 6px 10px;
+            padding: 12px 14px;
         }
         table.data-table tr:nth-child(even) {
             background-color: #f5f5f5;
         }
         .footer {
-            margin-top: 20px;
-            font-size: 10px;
+            margin-top: 25px;
+            font-size: 13px;
             text-align: center;
             color: #666;
-            border-top: 2px solid #003366;
-            padding: 15px;
+            border-top: 3px solid #003366;
+            padding: 20px;
             background-color: #f8f8f8;
         }
         .footer .confidential {
             color: #8B0000;
             font-weight: bold;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
+            font-size: 14px;
         }
         .action-buttons {
-            margin-top: 15px;
-            padding: 15px;
+            margin-top: 20px;
+            padding: 18px;
             background-color: #f0f0f0;
             border: 1px solid #ccc;
             text-align: right;
+            border-radius: 4px;
         }
         .btn {
-            font-family: Arial, sans-serif;
-            font-size: 12px;
-            padding: 8px 20px;
-            margin-left: 10px;
+            font-size: 15px;
+            padding: 12px 24px;
+            margin-left: 12px;
             cursor: pointer;
             border: 1px solid #666;
+            border-radius: 4px;
+            font-weight: 500;
         }
         .btn-primary {
             background: linear-gradient(180deg, #4a90d9 0%, #357abd 100%);
@@ -198,15 +227,91 @@
         .notes-box {
             background-color: #fffef0;
             border: 1px solid #e0d090;
+            padding: 15px;
+            font-size: 15px;
+            margin-top: 15px;
+            border-radius: 4px;
+            line-height: 1.5;
+        }
+        
+        /* Case Selector Styles */
+        .case-selector {
+            background: linear-gradient(180deg, #1a365d 0%, #0d1b2a 100%);
+            padding: 15px 25px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            border-bottom: 3px solid #3182ce;
+            flex-wrap: wrap;
+        }
+        .case-selector label {
+            color: #90cdf4;
+            font-size: 15px;
+            font-weight: 600;
+        }
+        .case-selector select {
+            padding: 10px 15px;
+            font-size: 15px;
+            border: 1px solid #4a5568;
+            border-radius: 6px;
+            background: #2d3748;
+            color: white;
+            cursor: pointer;
+            min-width: 380px;
+        }
+        .case-selector select:hover {
+            border-color: #63b3ed;
+        }
+        .case-selector select option {
             padding: 10px;
-            font-size: 12px;
-            font-style: italic;
-            margin-top: 10px;
+        }
+        .case-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+        .case-indicator.critical {
+            background: #fc8181;
+            color: #742a2a;
+        }
+        .case-indicator.warning {
+            background: #f6e05e;
+            color: #744210;
+        }
+        .case-indicator.compliant {
+            background: #68d391;
+            color: #22543d;
+        }
+        .back-link {
+            color: #90cdf4;
+            text-decoration: none;
+            font-size: 14px;
+            margin-left: auto;
+        }
+        .back-link:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- Case Selector Bar -->
+        <div class="case-selector">
+            <label>📂 Sélectionner un dossier :</label>
+            <select id="caseSelect" onchange="switchCase(this.value)">
+                <option value="sophie">🔴 Sophie Martin - CRITIQUE (fonds insuffisants, doc périmé)</option>
+                <option value="jean">🟢 Jean-Claude Tremblay - CONFORME (tout OK)</option>
+                <option value="marie">🟡 Marie Dubois - AVERTISSEMENT (fonds limite)</option>
+                <option value="ahmed">🔴 Ahmed Hassan - CRITIQUE (multiples problèmes)</option>
+            </select>
+            <span id="caseIndicator" class="case-indicator critical">🔴 CRITIQUE</span>
+            <a href="index.html" class="back-link">← Retour aux tests</a>
+        </div>
+        
         <!-- Government Header -->
         <div class="gov-header">
             <span class="canada-flag">🍁</span>
@@ -221,13 +326,13 @@
             <span>🔍 Rechercher</span>
             <span>📋 Rapports</span>
             <span>❓ Aide</span>
-            <span style="float: right; color: #666;">Agent: J.TREMBLAY | Session: 2024-01-15 14:32</span>
+            <span style="float: right; color: #666;">Agent: J.TREMBLAY | Session: <span id="sessionDate"></span></span>
         </div>
 
         <div class="content">
             <!-- Case Header -->
             <div class="case-header">
-                <span class="case-id">Dossier #: IMM-2024-00547821</span>
+                <span class="case-id">Dossier #: <span id="caseNumber">IMM-2024-00547821</span></span>
                 <strong>📋 FICHE DE DEMANDE - ENTRÉE EXPRESS</strong>
             </div>
 
@@ -237,39 +342,43 @@
                 <div class="section-content">
                     <div class="field">
                         <span class="label">Nom complet :</span>
-                        <span class="value"><strong>Sophie Martin</strong></span>
+                        <span class="value"><strong id="fullName">Sophie Martin</strong></span>
                     </div>
                     <div class="field">
                         <span class="label">ID Unique Client (UCI) :</span>
-                        <span class="value">UCI-99887766</span>
+                        <span class="value" id="uci">UCI-99887766</span>
                     </div>
                     <div class="field">
                         <span class="label">Date de naissance :</span>
-                        <span class="value">1985-04-12</span>
+                        <span class="value" id="dob">1985-04-12</span>
                     </div>
                     <div class="field">
                         <span class="label">Sexe :</span>
-                        <span class="value">Féminin</span>
+                        <span class="value" id="gender">Féminin</span>
                     </div>
                     <div class="field">
                         <span class="label">Pays de citoyenneté :</span>
-                        <span class="value">France 🇫🇷</span>
+                        <span class="value" id="citizenship">France 🇫🇷</span>
                     </div>
                     <div class="field">
                         <span class="label">Pays de résidence :</span>
-                        <span class="value">France</span>
+                        <span class="value" id="residence">France</span>
                     </div>
                     <div class="field">
                         <span class="label">Numéro de passeport :</span>
-                        <span class="value">FR1234567</span>
+                        <span class="value" id="passport">FR1234567</span>
+                    </div>
+                    <div class="field">
+                        <span class="label">Courriel :</span>
+                        <span class="value" id="email">sophie.martin@email.fr</span>
                     </div>
                     <div class="field">
                         <span class="label">État civil :</span>
-                        <span class="value">Célibataire</span>
+                        <span class="value" id="maritalStatus">Célibataire</span>
                     </div>
                     <div class="field">
                         <span class="label">Personnes à charge :</span>
-                        <span class="value">0</span>
+                        <span class="value" id="dependents">0</span>
                     </div>
                 </div>
             </div>
@@ -280,35 +389,35 @@
                 <div class="section-content">
                     <div class="field">
                         <span class="label">Type de preuve :</span>
-                        <span class="value">Relevé Bancaire (Certifié)</span>
+                        <span class="value" id="proofType">Relevé Bancaire (Certifié)</span>
                     </div>
                     <div class="field">
                         <span class="label">Institution financière :</span>
-                        <span class="value">Banque Nationale de Paris (BNP)</span>
+                        <span class="value" id="bankName">Banque Nationale de Paris (BNP)</span>
                     </div>
                     <div class="field">
                         <span class="label">Numéro de compte :</span>
-                        <span class="value">****4521</span>
+                        <span class="value" id="accountNumber">****4521</span>
                     </div>
                     <div class="divider"></div>
                     <div class="field">
                         <span class="label">Solde moyen (6 mois) :</span>
-                        <span class="value amount highlight-info">5 000 $</span>
+                        <span class="value amount" id="balance">5 000 $</span>
                     </div>
                     <div class="field">
                         <span class="label">Devise :</span>
-                        <span class="value">CAD (converti de EUR)</span>
-                    </div>
-                    <div class="field">
-                        <span class="label">Taux de conversion utilisé :</span>
-                        <span class="value">1 EUR = 1.47 CAD (2024-01-10)</span>
+                        <span class="value" id="currency">CAD (converti de EUR)</span>
                     </div>
                     <div class="field">
                         <span class="label">Date du relevé :</span>
-                        <span class="value">2024-01-01</span>
+                        <span class="value" id="statementDate">2024-01-01</span>
+                    </div>
+                    <div class="field">
+                        <span class="label">Seuil LICO requis :</span>
+                        <span class="value" id="licoRequired">20 635 $ CAD (1 personne)</span>
                     </div>
                     
-                    <div class="notes-box">
+                    <div class="notes-box" id="financialNote">
                         <strong>📌 Note:</strong> Le seuil LICO requis pour une personne seule est de <strong>20 635 $ CAD</strong>. 
                         Vérifier la conformité selon le Règlement R179(b).
                     </div>
@@ -321,37 +430,37 @@
                 <div class="section-content">
                     <div class="field">
                         <span class="label">Date de soumission :</span>
-                        <span class="value">2024-01-01</span>
+                        <span class="value" id="submissionDate">2024-01-01</span>
                     </div>
                     <div class="field">
                         <span class="label">Catégorie d'immigration :</span>
-                        <span class="value">Entrée Express - Travailleur Qualifié Fédéral</span>
+                        <span class="value" id="category">Entrée Express - Travailleur Qualifié Fédéral</span>
                     </div>
                     <div class="field">
                         <span class="label">Score CRS :</span>
-                        <span class="value"><strong>468</strong> points</span>
+                        <span class="value"><strong id="crsScore">468</strong> points</span>
                     </div>
                     <div class="field">
                         <span class="label">État actuel :</span>
-                        <span class="value">
+                        <span class="value" id="currentStatus">
                             <span class="status-badge status-pending">⏳ En attente d'évaluation</span>
                         </span>
                     </div>
                     <div class="field">
                         <span class="label">Vérification biométrique :</span>
-                        <span class="value">
+                        <span class="value" id="biometricStatus">
                             <span class="status-badge status-verified">✓ Complétée</span>
                         </span>
                     </div>
                     <div class="field">
                         <span class="label">Vérification médicale :</span>
-                        <span class="value">
+                        <span class="value" id="medicalStatus">
                             <span class="status-badge status-verified">✓ Approuvée</span>
                         </span>
                     </div>
                     <div class="field">
                         <span class="label">Vérification de sécurité :</span>
-                        <span class="value">
+                        <span class="value" id="securityStatus">
                             <span class="status-badge status-pending">⏳ En cours</span>
                         </span>
                     </div>
@@ -370,7 +479,7 @@
                                 <th>Statut</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="documentsTable">
                             <tr>
                                 <td>Passeport (copie certifiée)</td>
                                 <td>2024-01-01</td>
@@ -418,8 +527,239 @@
         <div class="footer">
             <div class="confidential">🔒 PROTÉGÉ B — RENSEIGNEMENTS PERSONNELS</div>
             © Sa Majesté le Roi du chef du Canada, représentée par le ministre de la Citoyenneté et de l'Immigration, 1998-2024.<br>
-            Système GCMS Legacy v4.2.1 | Dernière mise à jour: 2024-01-15 14:35:22 EST
+            Système GCMS Legacy v4.2.1 | Dernière mise à jour: <span id="lastUpdate"></span>
         </div>
     </div>
+
+    <script>
+        // Test cases data
+        const cases = {
+            sophie: {
+                indicator: { class: 'critical', text: '🔴 CRITIQUE' },
+                caseNumber: 'IMM-2024-00547821',
+                fullName: 'Sophie Martin',
+                uci: 'UCI-99887766',
+                dob: '1985-04-12',
+                gender: 'Féminin',
+                citizenship: 'France 🇫🇷',
+                residence: 'France',
+                passport: 'FR1234567',
+                email: 'sophie.martin@email.fr',
+                maritalStatus: 'Célibataire',
+                dependents: '0',
+                proofType: 'Relevé Bancaire (Certifié)',
+                bankName: 'Banque Nationale de Paris (BNP)',
+                accountNumber: '****4521',
+                balance: '5 000 $',
+                balanceClass: 'highlight-danger',
+                currency: 'CAD (converti de EUR)',
+                statementDate: '2024-01-01',
+                statementDateClass: 'highlight-danger',
+                licoRequired: '20 635 $ CAD (1 personne)',
+                financialNote: '<strong>⚠️ ALERTE:</strong> Le solde de 5 000 $ est <strong>INFÉRIEUR</strong> au seuil LICO requis (20 635 $). Document daté du 2024-01-01 (> 6 mois). Deux problèmes critiques détectés.',
+                submissionDate: '2024-01-01',
+                category: 'Entrée Express - Travailleur Qualifié Fédéral',
+                crsScore: '468',
+                documents: [
+                    { name: 'Passeport (copie certifiée)', date: '2024-01-01', status: 'verified' },
+                    { name: 'Relevé bancaire (6 mois)', date: '2024-01-01', status: 'warning' },
+                    { name: 'Diplôme universitaire', date: '2024-01-02', status: 'verified' },
+                    { name: 'Test de langue (IELTS)', date: '2023-12-15', status: 'verified' },
+                    { name: 'Certificat de police', date: '2024-01-03', status: 'pending' }
+                ]
+            },
+            jean: {
+                indicator: { class: 'compliant', text: '🟢 CONFORME' },
+                caseNumber: 'IMM-2024-00891234',
+                fullName: 'Jean-Claude Tremblay',
+                uci: 'UCI-12345678',
+                dob: '1990-07-22',
+                gender: 'Masculin',
+                citizenship: 'Canada 🇨🇦 (Résident temporaire)',
+                residence: 'Canada (Montréal, QC)',
+                passport: 'CA9876543',
+                email: 'jc.tremblay@gmail.com',
+                maritalStatus: 'Célibataire',
+                dependents: '0',
+                proofType: 'Relevé Bancaire (Certifié)',
+                bankName: 'Banque Royale du Canada (RBC)',
+                accountNumber: '****7890',
+                balance: '35 000 $',
+                balanceClass: 'highlight-success',
+                currency: 'CAD',
+                statementDate: new Date(Date.now() - 15*24*60*60*1000).toISOString().split('T')[0],
+                statementDateClass: 'highlight-success',
+                licoRequired: '20 635 $ CAD (1 personne)',
+                financialNote: '<strong>✓ CONFORME:</strong> Le solde de 35 000 $ <strong>DÉPASSE</strong> le seuil LICO requis (20 635 $). Document récent et valide.',
+                submissionDate: new Date(Date.now() - 30*24*60*60*1000).toISOString().split('T')[0],
+                category: 'Entrée Express - Travailleur Qualifié Fédéral',
+                crsScore: '512',
+                documents: [
+                    { name: 'Passeport (copie certifiée)', date: '2024-10-15', status: 'verified' },
+                    { name: 'Relevé bancaire (6 mois)', date: '2024-11-01', status: 'verified' },
+                    { name: 'Diplôme universitaire', date: '2024-10-16', status: 'verified' },
+                    { name: 'Évaluation des diplômes (ECA)', date: '2024-10-16', status: 'verified' },
+                    { name: 'Test de langue (IELTS)', date: '2024-09-20', status: 'verified' },
+                    { name: 'Certificat de police', date: '2024-10-20', status: 'verified' }
+                ]
+            },
+            marie: {
+                indicator: { class: 'warning', text: '🟡 AVERTISSEMENT' },
+                caseNumber: 'IMM-2024-00654987',
+                fullName: 'Marie Dubois',
+                uci: 'UCI-55667788',
+                dob: '1992-03-18',
+                gender: 'Féminin',
+                citizenship: 'Belgique 🇧🇪',
+                residence: 'Belgique',
+                passport: 'BE7654321',
+                email: 'marie.dubois@outlook.be',
+                maritalStatus: 'Mariée',
+                dependents: '1 (conjoint)',
+                proofType: 'Relevé Bancaire (Certifié)',
+                bankName: 'ING Belgique',
+                accountNumber: '****3456',
+                balance: '28 000 $',
+                balanceClass: 'highlight-info',
+                currency: 'CAD (converti de EUR)',
+                statementDate: new Date(Date.now() - 45*24*60*60*1000).toISOString().split('T')[0],
+                statementDateClass: '',
+                licoRequired: '35 091 $ CAD (2 personnes)',
+                financialNote: '<strong>⚠️ ATTENTION:</strong> Le solde de 28 000 $ est <strong>INFÉRIEUR</strong> au seuil LICO requis pour 2 personnes (35 091 $). Fonds insuffisants pour le nombre de personnes à charge.',
+                submissionDate: new Date(Date.now() - 60*24*60*60*1000).toISOString().split('T')[0],
+                category: 'Entrée Express - Travailleur Qualifié Fédéral',
+                crsScore: '445',
+                documents: [
+                    { name: 'Passeport (copie certifiée)', date: '2024-09-20', status: 'verified' },
+                    { name: 'Relevé bancaire (6 mois)', date: '2024-10-10', status: 'warning' },
+                    { name: 'Diplôme universitaire', date: '2024-09-21', status: 'verified' },
+                    { name: 'Certificat de mariage', date: '2024-09-21', status: 'verified' },
+                    { name: 'Passeport conjoint', date: '2024-09-22', status: 'verified' },
+                    { name: 'Test de langue (TEF)', date: '2024-08-15', status: 'verified' },
+                    { name: 'Certificat de police', date: '2024-09-25', status: 'pending' }
+                ]
+            },
+            ahmed: {
+                indicator: { class: 'critical', text: '🔴 CRITIQUE' },
+                caseNumber: 'IMM-2024-00321654',
+                fullName: 'Ahmed Hassan',
+                uci: 'UCI-11223344',
+                dob: '1988-11-05',
+                gender: 'Masculin',
+                citizenship: 'Égypte 🇪🇬',
+                residence: 'Émirats Arabes Unis',
+                passport: 'EG1122334',
+                email: 'ahmed.hassan@email.ae',
+                maritalStatus: 'Marié',
+                dependents: '3 (conjoint + 2 enfants)',
+                proofType: 'Relevé Bancaire (Non certifié)',
+                bankName: 'Emirates NBD',
+                accountNumber: '****9012',
+                balance: '15 000 $',
+                balanceClass: 'highlight-danger',
+                currency: 'CAD (converti de AED)',
+                statementDate: '2024-02-15',
+                statementDateClass: 'highlight-danger',
+                licoRequired: '52 399 $ CAD (4 personnes)',
+                financialNote: '<strong>🚨 CRITIQUE:</strong> Multiples problèmes détectés: 1) Solde de 15 000 $ très inférieur au seuil LICO pour 4 personnes (52 399 $). 2) Relevé non certifié. 3) Document périmé (> 6 mois). Demande à risque élevé.',
+                submissionDate: '2024-02-20',
+                category: 'Entrée Express - Travailleur Qualifié Fédéral',
+                crsScore: '398',
+                documents: [
+                    { name: 'Passeport (copie)', date: '2024-02-15', status: 'warning' },
+                    { name: 'Relevé bancaire (6 mois)', date: '2024-02-15', status: 'warning' },
+                    { name: 'Diplôme universitaire', date: '2024-02-16', status: 'pending' },
+                    { name: 'Certificat de mariage', date: '2024-02-16', status: 'verified' },
+                    { name: 'Actes de naissance enfants', date: '2024-02-17', status: 'verified' },
+                    { name: 'Test de langue (IELTS)', date: '2023-06-10', status: 'warning' },
+                    { name: 'Certificat de police - Égypte', date: '2024-02-20', status: 'pending' },
+                    { name: 'Certificat de police - EAU', date: '2024-02-20', status: 'pending' }
+                ]
+            }
+        };
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            const now = new Date();
+            document.getElementById('sessionDate').textContent = now.toISOString().split('T')[0] + ' ' + now.toTimeString().split(' ')[0].substring(0,5);
+            document.getElementById('lastUpdate').textContent = now.toISOString().replace('T', ' ').substring(0, 19) + ' EST';
+            
+            // Load case from URL parameter if present
+            const urlParams = new URLSearchParams(window.location.search);
+            const caseParam = urlParams.get('case');
+            if (caseParam && cases[caseParam]) {
+                document.getElementById('caseSelect').value = caseParam;
+                switchCase(caseParam);
+            }
+        });
+
+        function switchCase(caseId) {
+            const data = cases[caseId];
+            if (!data) return;
+
+            // Update indicator
+            const indicator = document.getElementById('caseIndicator');
+            indicator.className = 'case-indicator ' + data.indicator.class;
+            indicator.textContent = data.indicator.text;
+
+            // Update all fields
+            document.getElementById('caseNumber').textContent = data.caseNumber;
+            document.getElementById('fullName').textContent = data.fullName;
+            document.getElementById('uci').textContent = data.uci;
+            document.getElementById('dob').textContent = data.dob;
+            document.getElementById('gender').textContent = data.gender;
+            document.getElementById('citizenship').textContent = data.citizenship;
+            document.getElementById('residence').textContent = data.residence;
+            document.getElementById('passport').textContent = data.passport;
+            document.getElementById('email').textContent = data.email;
+            document.getElementById('maritalStatus').textContent = data.maritalStatus;
+            document.getElementById('dependents').textContent = data.dependents;
+            
+            document.getElementById('proofType').textContent = data.proofType;
+            document.getElementById('bankName').textContent = data.bankName;
+            document.getElementById('accountNumber').textContent = data.accountNumber;
+            
+            const balanceEl = document.getElementById('balance');
+            balanceEl.textContent = data.balance;
+            balanceEl.className = 'value amount ' + data.balanceClass;
+            
+            document.getElementById('currency').textContent = data.currency;
+            
+            const statementDateEl = document.getElementById('statementDate');
+            statementDateEl.textContent = data.statementDate;
+            statementDateEl.className = 'value ' + data.statementDateClass;
+            
+            document.getElementById('licoRequired').textContent = data.licoRequired;
+            document.getElementById('financialNote').innerHTML = data.financialNote;
+            
+            document.getElementById('submissionDate').textContent = data.submissionDate;
+            document.getElementById('category').textContent = data.category;
+            document.getElementById('crsScore').textContent = data.crsScore;
+
+            // Update documents table
+            const tbody = document.getElementById('documentsTable');
+            tbody.innerHTML = data.documents.map(doc => `
+                <tr>
+                    <td>${doc.name}</td>
+                    <td>${doc.date}</td>
+                    <td><span class="status-badge status-${doc.status}">${getStatusText(doc.status)}</span></td>
+                </tr>
+            `).join('');
+
+            // Update URL without reload
+            const url = new URL(window.location);
+            url.searchParams.set('case', caseId);
+            window.history.pushState({}, '', url);
+        }
+
+        function getStatusText(status) {
+            switch(status) {
+                case 'verified': return '✓ Vérifié';
+                case 'warning': return '⚠ À vérifier';
+                case 'pending': return '⏳ En attente';
+                default: return status;
+            }
+        }
+    </script>
 </body>
 </html>

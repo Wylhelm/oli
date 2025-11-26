@@ -20,10 +20,12 @@ import {
   Zap,
   BookOpen,
   Brain,
-  FileType
+  FileType,
+  RotateCcw
 } from 'lucide-react'
 import { cn } from './lib/utils'
 import { pdfHandler, type DetectedPDF } from './lib/pdf-handler'
+import logoImg from './assets/logo.png'
 
 // Types matching the LLM backend response
 interface ComplianceCheck {
@@ -159,21 +161,34 @@ function CircularProgress({
 }
 
 // Alert Card Component
-function AlertCard({ check, index }: { check: ComplianceCheck; index: number }) {
+function AlertCard({ check, index, onScrollTo, isPdfMode }: { check: ComplianceCheck; index: number; onScrollTo?: (text: string, status: string, message: string) => void; isPdfMode?: boolean }) {
   const config = statusConfig[check.status];
   const Icon = checkIcons[check.id] || Scale;
+  const hasHighlight = !!check.highlight_text;
+  // PDF mode: highlighting not supported, only allow clicking for HTML pages
+  const isClickable = hasHighlight && !isPdfMode;
+  
+  const handleClick = () => {
+    if (isClickable && onScrollTo && check.highlight_text) {
+      console.log("[OLI AlertCard] Click - scrolling to:", check.highlight_text);
+      onScrollTo(check.highlight_text, check.status, check.message);
+    }
+  };
   
   return (
     <div 
       className={cn(
-        "p-4 rounded-xl border shadow-sm transition-all hover:shadow-md",
+        "p-4 rounded-xl border shadow-sm transition-all",
         "animate-in fade-in slide-in-from-bottom-4",
         "bg-white",
         check.status === 'CRITIQUE' && "border-l-4 border-l-red-500 border-red-100",
         check.status === 'AVERTISSEMENT' && "border-l-4 border-l-amber-500 border-amber-100",
-        check.status === 'CONFORME' && "border-l-4 border-l-emerald-500 border-emerald-100"
+        check.status === 'CONFORME' && "border-l-4 border-l-emerald-500 border-emerald-100",
+        isClickable && "cursor-pointer hover:shadow-md hover:scale-[1.01]"
       )}
       style={{ animationDelay: `${index * 100}ms` }}
+      onClick={handleClick}
+      title={isClickable ? "Cliquer pour voir dans la page" : undefined}
     >
       <div className="flex items-start gap-3">
         <div className={cn(
@@ -191,9 +206,15 @@ function AlertCard({ check, index }: { check: ComplianceCheck; index: number }) 
             )}>
               {config.label}
             </span>
+            {isClickable && (
+              <span className="text-xs text-slate-400 flex items-center gap-1">
+                <ExternalLink className="w-3 h-3" />
+                Voir
+              </span>
+            )}
           </div>
           <p className="text-sm text-slate-600 mb-2">{check.message}</p>
-          {check.status !== 'CONFORME' && (
+          {check.status !== 'CONFORME' && check.recommendation && (
             <p className="text-xs text-slate-500 italic flex items-center gap-1">
               <ChevronRight className="w-3 h-3" />
               {check.recommendation}
@@ -325,6 +346,8 @@ function App() {
   const [analysisMode, setAnalysisMode] = useState<AnalysisMode>('llm');
   const [loadingMessage, setLoadingMessage] = useState('');
   const [detectedPDFs, setDetectedPDFs] = useState<DetectedPDF[]>([]);
+  // PDF analysis tracking (page content disabled - PDF.js blocked by CSP)
+  const [currentPdfUrl, setCurrentPdfUrl] = useState<string | null>(null);
 
   // Detect PDFs when component mounts
   useEffect(() => {
@@ -379,32 +402,20 @@ function App() {
     }
   };
 
-  // Extract text from a PDF URL
-  const extractPDFText = async (pdfUrl: string): Promise<string | null> => {
-    try {
-      setLoadingMessage('Extraction du PDF...');
-      const result = await pdfHandler.extractFromUrl(pdfUrl);
-      if (result.success) {
-        return result.fullText;
-      }
-      throw new Error(result.error || 'PDF extraction failed');
-    } catch (err) {
-      console.error('PDF extraction failed:', err);
-      return null;
-    }
-  };
-
   // Analyze a detected PDF
   const analyzePDF = async (pdf: DetectedPDF) => {
     setLoading(true);
     setResult(null);
     setError(null);
     setLoadingMessage('Extraction du PDF...');
+    // Store PDF URL for navigation
+    setCurrentPdfUrl(pdf.url);
 
     try {
-      const text = await extractPDFText(pdf.url);
-      if (!text) {
-        throw new Error('Impossible d\'extraire le texte du PDF');
+      // Extract PDF with page content
+      const pdfResult = await pdfHandler.extractFromUrl(pdf.url);
+      if (!pdfResult.success) {
+        throw new Error(pdfResult.error || 'Impossible d\'extraire le texte du PDF');
       }
       
       // Analyze with LLM
@@ -418,7 +429,7 @@ function App() {
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({ text: pdfResult.fullText }),
       });
 
       if (!response.ok) {
@@ -429,6 +440,7 @@ function App() {
       setResult(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur inconnue');
+      setCurrentPdfUrl(null);
     } finally {
       setLoading(false);
       setLoadingMessage('');
@@ -457,13 +469,76 @@ function App() {
         throw new Error("Aucun onglet actif trouvé");
       }
 
-      // 2. Extract page text
-      const injectionResults = await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        func: () => document.body.innerText,
-      });
-
-      const pageText = injectionResults[0].result;
+      // Check if current page is a PDF (including Adobe Acrobat wrapper)
+      const isAdobePdf = tab.url?.startsWith('chrome-extension://') && tab.url?.includes('/http');
+      const isPdfPage = tab.url?.toLowerCase().endsWith('.pdf') || 
+                        tab.url?.includes('/pdf/') ||
+                        tab.url?.includes('blob:') ||
+                        isAdobePdf;
+      
+      // Extract original URL if Adobe has wrapped it
+      let originalPdfUrl = tab.url;
+      if (isAdobePdf && tab.url) {
+        // Format: chrome-extension://[id]/http://... -> extract http://...
+        const httpMatch = tab.url.match(/(https?:\/\/.+)$/);
+        if (httpMatch) {
+          originalPdfUrl = httpMatch[1];
+          console.log("[OLI] Extracted original PDF URL from Adobe:", originalPdfUrl);
+        }
+      }
+      
+      let pageText: string;
+      
+      if (isPdfPage && originalPdfUrl) {
+        // Extract PDF with page tracking
+        setLoadingMessage('Extraction du PDF...');
+        // Set the ORIGINAL PDF URL for navigation (not the Adobe wrapper URL)
+        setCurrentPdfUrl(originalPdfUrl);
+        console.log("[OLI] PDF detected, setting currentPdfUrl:", originalPdfUrl);
+        
+        try {
+          // Use original URL for PDF extraction (not Adobe wrapper)
+          const pdfResult = await pdfHandler.extractFromUrl(originalPdfUrl);
+          if (pdfResult.success) {
+            // pdfPageContent disabled - PDF.js blocked by CSP
+            pageText = pdfResult.fullText;
+            console.log("[OLI] PDF extraction success, pages:", pdfResult.content.length);
+          } else {
+            throw new Error(pdfResult.error || 'PDF extraction failed');
+          }
+        } catch (pdfError) {
+          // PDF extraction failed (likely CSP blocking PDF.js)
+          console.log("[OLI] PDF extraction failed:", pdfError);
+          
+          // If we're on Adobe's extension page, we can't extract text via script
+          if (isAdobePdf) {
+            console.log("[OLI] On Adobe page, cannot extract text. Using placeholder.");
+            // We can still navigate using the original URL, but analysis will be limited
+            pageText = `[PDF ouvert dans Adobe Acrobat: ${originalPdfUrl}]\n\nL'analyse de ce PDF nécessite une extraction manuelle. Les fonctions de navigation restent disponibles.`;
+          } else {
+            // Try to extract text from page
+            try {
+              const injectionResults = await chrome.scripting.executeScript({
+                target: { tabId: tab.id },
+                func: () => document.body.innerText,
+              });
+              pageText = injectionResults[0].result || '';
+            } catch {
+              pageText = '';
+            }
+          }
+        }
+      } else {
+        // Regular page - clear PDF state
+        setCurrentPdfUrl(null);
+        
+        // Extract page text
+        const injectionResults = await chrome.scripting.executeScript({
+          target: { tabId: tab.id },
+          func: () => document.body.innerText,
+        });
+        pageText = injectionResults[0].result || '';
+      }
 
       // 3. Send to Backend (LLM or Fast mode)
       const endpoint = analysisMode === 'llm' 
@@ -528,6 +603,83 @@ function App() {
     return 'emerald';
   };
 
+  // Reset to initial state for new analysis
+  const resetAnalysis = async () => {
+    setResult(null);
+    setError(null);
+    setDetectedPDFs([]);
+    // Clear PDF analysis state
+    setCurrentPdfUrl(null);
+    
+    // Clear highlights in the page
+    try {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (tab?.id) {
+        chrome.tabs.sendMessage(tab.id, { action: "CLEAR_HIGHLIGHTS" }).catch(() => {});
+      }
+    } catch {
+      // Ignore errors
+    }
+    
+    // Re-detect PDFs
+    detectPDFs();
+  };
+
+
+  // Scroll to and highlight text in the page
+  const scrollToHighlight = async (text: string, status: string, message: string) => {
+    console.log("[OLI] scrollToHighlight called:", { text, status, isPdf: !!currentPdfUrl });
+    
+    // PDF highlighting not supported - skip for PDF pages
+    if (currentPdfUrl) {
+      console.log("[OLI] PDF mode - highlighting not supported");
+      return;
+    }
+    
+    try {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      console.log("[OLI] Active tab:", tab?.id, tab?.url);
+      
+      if (!tab?.id) {
+        console.error("[OLI] No active tab found");
+        return;
+      }
+
+      // Try to send message directly first (script may already be loaded)
+      try {
+        const response = await chrome.tabs.sendMessage(tab.id, {
+          action: "SCROLL_TO_TEXT",
+          data: { text, status, message }
+        });
+        console.log("[OLI] Response:", response);
+        return;
+      } catch {
+        // Script not loaded, inject it
+        console.log("[OLI] Script not loaded, injecting...");
+      }
+
+      // Inject content script
+      await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        files: ['content.js']
+      });
+      
+      // Wait a bit then send message
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      // Send scroll message
+      console.log("[OLI] Sending SCROLL_TO_TEXT message after injection");
+      const response = await chrome.tabs.sendMessage(tab.id, {
+        action: "SCROLL_TO_TEXT",
+        data: { text, status, message }
+      });
+      console.log("[OLI] Response:", response);
+      
+    } catch (err) {
+      console.error("[OLI] Failed to scroll to highlight:", err);
+    }
+  };
+
   return (
     <div className="w-full min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 text-slate-900 font-sans">
       {/* Header with Glass Effect */}
@@ -536,9 +688,11 @@ function App() {
           <div className="flex items-center gap-3">
             <div className="relative">
               <div className="absolute inset-0 bg-primary/20 blur-lg rounded-xl"></div>
-              <div className="relative bg-gradient-to-br from-primary to-blue-700 text-white p-2 rounded-xl shadow-lg">
-                <Shield className="w-5 h-5" />
-              </div>
+              <img 
+                src={logoImg} 
+                alt="OLI Logo" 
+                className="relative w-10 h-10 rounded-xl shadow-lg object-contain"
+              />
             </div>
             <div>
               <h1 className="font-bold text-lg tracking-tight bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
@@ -620,6 +774,15 @@ function App() {
         {/* Results */}
         {result && (
           <>
+            {/* New Analysis Button */}
+            <button
+              onClick={resetAnalysis}
+              className="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm font-medium transition-all mb-3"
+            >
+              <RotateCcw className="w-4 h-4" />
+              Nouvelle analyse
+            </button>
+            
             {/* Score Cards */}
             <div className="grid grid-cols-2 gap-3">
               {/* Risk Score */}
@@ -680,7 +843,7 @@ function App() {
               </h3>
               
               {result.checks.map((check, index) => (
-                <AlertCard key={check.id} check={check} index={index} />
+                <AlertCard key={check.id} check={check} index={index} onScrollTo={scrollToHighlight} isPdfMode={!!currentPdfUrl} />
               ))}
             </div>
 
@@ -755,6 +918,7 @@ function App() {
           )}
         </button>
       </div>
+      
     </div>
   )
 }

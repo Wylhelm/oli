@@ -304,6 +304,69 @@
         .portal-card:hover .portal-arrow {
             transform: translateX(5px);
         }
+        
+        .case-links {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .case-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .case-link:hover {
+            transform: translateY(-2px);
+        }
+        
+        .case-link.critical {
+            background: rgba(239, 68, 68, 0.15);
+        }
+        .case-link.critical:hover {
+            background: rgba(239, 68, 68, 0.25);
+            border-color: rgba(239, 68, 68, 0.4);
+        }
+        
+        .case-link.warning {
+            background: rgba(245, 158, 11, 0.15);
+        }
+        .case-link.warning:hover {
+            background: rgba(245, 158, 11, 0.25);
+            border-color: rgba(245, 158, 11, 0.4);
+        }
+        
+        .case-link.compliant {
+            background: rgba(16, 185, 129, 0.15);
+        }
+        .case-link.compliant:hover {
+            background: rgba(16, 185, 129, 0.25);
+            border-color: rgba(16, 185, 129, 0.4);
+        }
+        
+        .case-badge {
+            font-size: 1.2rem;
+        }
+        
+        .case-link span:nth-child(2) {
+            color: #f1f5f9;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        
+        .case-issue {
+            margin-left: auto;
+            font-size: 0.75rem !important;
+            color: #94a3b8 !important;
+            font-weight: 400 !important;
+        }
     </style>
 </head>
 <body>
@@ -311,19 +374,19 @@
         <header>
             <div class="logo">
                 <div class="logo-icon">🛡️</div>
-                <h1>OLI Test Documents</h1>
+                <h1>OLI - Zone de Test</h1>
             </div>
-            <p class="subtitle">Documents PDF pour tester l'analyse OLI</p>
+            <p class="subtitle">Testez l'analyse de conformité avec le portail demo et les documents PDF</p>
         </header>
         
         <div class="instructions">
-            <h2>📋 Instructions de test</h2>
+            <h2>📋 Comment tester OLI</h2>
             <ol>
-                <li>Ouvrez l'extension OLI (cliquez sur l'icône 🛡️)</li>
-                <li>Les PDFs ci-dessous seront automatiquement détectés</li>
-                <li>Cliquez sur un PDF dans le panneau OLI pour l'analyser</li>
-                <li>Alternativement, ouvrez un PDF directement puis lancez OLI</li>
-                <li>Testez les deux modes: <code>Rapide</code> et <code>IA</code></li>
+                <li><strong>Portail Legacy (recommandé)</strong> : Cliquez sur le bouton rouge ci-dessous pour accéder au simulateur du portail IRCC avec un dossier d'immigration pré-rempli (Sophie Martin, UCI-99887766)</li>
+                <li><strong>Activez OLI</strong> : Cliquez sur l'icône 🛡️ dans la barre d'extensions Chrome</li>
+                <li><strong>Analysez</strong> : Cliquez sur "Analyser avec IA" pour lancer l'analyse du dossier</li>
+                <li><strong>Documents PDF</strong> : Vous pouvez aussi tester avec les PDFs ci-dessous (relevés bancaires, formulaires)</li>
+                <li><strong>Modes</strong> : Testez les deux modes - <code>Rapide</code> (règles) et <code>IA</code> (LLM + RAG)</li>
             </ol>
         </div>
         
@@ -332,13 +395,37 @@
             <div class="portal-card">
                 <div class="portal-icon">🍁</div>
                 <div class="portal-info">
-                    <h3>Portail Legacy IRCC</h3>
-                    <p>Système de Traitement des Demandes v4.2.1</p>
-                    <p class="portal-desc">Simulateur du portail gouvernemental avec données de test (Sophie Martin, UCI-99887766)</p>
+                    <h3>▶ Accéder au Portail Demo IRCC</h3>
+                    <p>Système de Traitement des Demandes v4.2.1 — <strong>4 cas de test disponibles</strong></p>
+                    <p class="portal-desc">🔴 Sophie Martin (critique) | 🟢 Jean-Claude Tremblay (conforme) | 🟡 Marie Dubois (avertissement) | 🔴 Ahmed Hassan (critique)</p>
                 </div>
                 <div class="portal-arrow">→</div>
             </div>
         </a>
+        
+        <!-- Direct links to cases -->
+        <div class="case-links">
+            <a href="legacy-portal.html?case=sophie" class="case-link critical">
+                <span class="case-badge">🔴</span>
+                <span>Sophie Martin</span>
+                <span class="case-issue">Fonds insuffisants + Doc périmé</span>
+            </a>
+            <a href="legacy-portal.html?case=jean" class="case-link compliant">
+                <span class="case-badge">🟢</span>
+                <span>Jean-Claude Tremblay</span>
+                <span class="case-issue">Tout conforme</span>
+            </a>
+            <a href="legacy-portal.html?case=marie" class="case-link warning">
+                <span class="case-badge">🟡</span>
+                <span>Marie Dubois</span>
+                <span class="case-issue">Fonds limite (2 pers.)</span>
+            </a>
+            <a href="legacy-portal.html?case=ahmed" class="case-link critical">
+                <span class="case-badge">🔴</span>
+                <span>Ahmed Hassan</span>
+                <span class="case-issue">Multiples problèmes</span>
+            </a>
+        </div>
         
         <div class="documents">
             <!-- Document 1: Non-compliant bank statement -->
