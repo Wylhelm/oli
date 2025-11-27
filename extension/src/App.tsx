@@ -1130,7 +1130,7 @@ function App() {
             loading 
               ? "bg-slate-200 text-slate-500" 
               : analysisMode === 'llm'
-                ? "bg-gradient-to-r from-violet-600 to-purple-600 text-white hover:shadow-xl hover:shadow-violet-500/25"
+                ? "bg-gradient-to-r from-blue-700 to-blue-900 text-white hover:shadow-xl hover:shadow-blue-500/25"
                 : "bg-gradient-to-r from-primary to-blue-600 text-white hover:shadow-xl hover:shadow-primary/25"
           )}
         >
